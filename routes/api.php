@@ -24,6 +24,11 @@ Route::post('user/login', [UsuarioController::class, 'login'])->name('login');
 // Ruta para registrar un usuario (con nombre)
 Route::post('user/register', [UsuarioController::class, 'create'])->name('register');
 
+Route::get('lugar', [LugarController::class, 'index']); // Obtener todos los lugares
+
+//Ruta para obtener los lugares por categoria
+Route::get('lugar/categoria/{id_categoria}', [LugarController::class, 'porCategoria']);
+
 // Grupo de rutas protegidas con autenticación Sanctum
 Route::middleware(['auth:sanctum'])->group(function() {
 
@@ -32,6 +37,7 @@ Route::middleware(['auth:sanctum'])->group(function() {
         Route::get('', [UsuarioController::class, 'index']); // Obtener todos los usuarios
         Route::post('', [UsuarioController::class, 'create']); // Crear un nuevo usuario
         Route::get('/{id}', [UsuarioController::class, 'show'])->whereNumber('id'); // Obtener usuario por ID
+        Route::get('/correo/{correo}', [UsuarioController::class, 'showByCorreo']); // Obtener usuario por correo electrónico
         Route::patch('/{id}', [UsuarioController::class, 'update'])->whereNumber('id'); // Actualizar usuario por ID
         Route::delete('/{id}', [UsuarioController::class, 'destroy'])->whereNumber('id'); // Eliminar usuario por ID
     });
@@ -52,6 +58,10 @@ Route::middleware(['auth:sanctum'])->group(function() {
         Route::get('/{id}', [DireccionController::class, 'show'])->whereNumber('id'); // Obtener dirección por ID
         Route::patch('/{id}', [DireccionController::class, 'update'])->whereNumber('id'); // Actualizar dirección por ID
         Route::delete('/{id}', [DireccionController::class, 'destroy'])->whereNumber('id'); // Eliminar dirección por ID
+        
+        // Nueva ruta para crear dirección y prepararla para crear un lugar
+        Route::post('/crear-para-lugar', [DireccionController::class, 'createWithLugar'])
+            ->name('direccion.crear_para_lugar');
     });
 
     // Rutas para CategoriaLugarController
@@ -65,12 +75,18 @@ Route::middleware(['auth:sanctum'])->group(function() {
 
     // Rutas para LugarController
     Route::prefix('lugar')->group(function() {
-        Route::get('', [LugarController::class, 'index']); // Obtener todos los lugares
+        
+       
         Route::post('', [LugarController::class, 'store']); // Crear un nuevo lugar
         Route::get('/{id}', [LugarController::class, 'show'])->whereNumber('id'); // Obtener lugar por ID
         Route::patch('/{id}', [LugarController::class, 'update'])->whereNumber('id'); // Actualizar lugar por ID
         Route::delete('/{id}', [LugarController::class, 'destroy'])->whereNumber('id'); // Eliminar lugar por ID
+    
+        // Ruta para crear lugar con dirección
+        Route::post('/con-direccion', [LugarController::class, 'createWithDireccion'])
+            ->name('lugar.crear_con_direccion');
     });
+    
 
     // Rutas para ComentarioController
     Route::prefix('comentario')->group(function() {
@@ -92,9 +108,10 @@ Route::middleware(['auth:sanctum'])->group(function() {
     // Rutas para PagoController
     Route::prefix('pago')->group(function() {
         Route::get('', [PagoController::class, 'index']); // Obtener todos los pagos
-        Route::post('', [PagoController::class, 'store']); // Realizar un pago
+        Route::post('/pagar', [PagoController::class, 'pagar'])->name('pago.pagar');
         Route::get('/{id}', [PagoController::class, 'show'])->whereNumber('id'); // Obtener pago por ID
-        Route::delete('/{id}', [PagoController::class, 'destroy'])->whereNumber('id'); // Eliminar pago por ID
+        Route::delete('/{id}', [PagoController::class, 'destroy'])->whereNumber('id'); 
+        
     });
 
     // Rutas para ListaController
@@ -118,5 +135,5 @@ Route::middleware(['auth:sanctum'])->group(function() {
 
 // Obtener la autenticación del usuario
 Route::get('/user', function (Request $request) {
-    return response()->json($request->user());
+    return response()->json($request->usuario());
 })->middleware('auth:sanctum');

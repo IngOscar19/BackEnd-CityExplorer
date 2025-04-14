@@ -20,7 +20,7 @@ class DireccionController extends Controller
     /**
      * Guarda una nueva dirección en la base de datos.
      */
-    public function store(Request $request)
+    public function create(Request $request)
     {
         try {
             $validatedData = $request->validate([
@@ -28,9 +28,7 @@ class DireccionController extends Controller
                 'numero_int' => 'nullable|string|max:10',
                 'numero_ext' => 'required|string|max:10',
                 'colonia' => 'required|string|max:100',
-                'codigo_postal' => 'required|string|size:5',
-                'ciudad' => 'required|string|max:100',
-                'estado' => 'required|string|max:100'
+                'codigo_postal' => 'required|string|size:5'
             ]);
 
             $direccion = Direccion::create($validatedData);
@@ -71,9 +69,7 @@ class DireccionController extends Controller
                 'numero_int' => 'nullable|string|max:10',
                 'numero_ext' => 'sometimes|string|max:10',
                 'colonia' => 'sometimes|string|max:100',
-                'codigo_postal' => 'sometimes|string|size:5',
-                'ciudad' => 'sometimes|string|max:100',
-                'estado' => 'sometimes|string|max:100'
+                'codigo_postal' => 'sometimes|string|size:5'
             ]);
 
             $direccion->update($validatedData);

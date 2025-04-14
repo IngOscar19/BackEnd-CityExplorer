@@ -202,4 +202,25 @@ class UsuarioController extends Controller
             ], 401);
         }
     }
+
+    /**
+ * Mostrar un usuario específico por correo electrónico.
+ */
+    public function showByCorreo(string $correo)
+    {
+         $usuario = Usuario::where('correo', $correo)->first();
+
+        if (!$usuario) {
+            return response()->json([
+            'estatus' => 0,
+            'mensaje' => 'Usuario no encontrado',
+            ], 404);
+        }
+
+        return response()->json([
+            'estatus' => 1,
+         'data' => $usuario,
+        ]);
+    }
+
 }
