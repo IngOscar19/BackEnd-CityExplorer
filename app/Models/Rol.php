@@ -1,24 +1,32 @@
 <?php
 
+
 namespace App\Models;
+
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+
 class Rol extends Model {
-    use HasFactory;
+   use HasFactory;
 
-    protected $table = 'Rol';
-    protected $primaryKey = 'id_rol';
-    public $timestamps = false;
 
-    protected $fillable = [
-        'nombre',
-        'descripcion'
-    ];
+   protected $table = 'Rol';
+   protected $primaryKey = 'id_rol';
+   public $timestamps = false;
 
-    // Relación con Usuarios
-    public function usuarios() {
-        return $this->hasMany(Usuario::class, 'id_rol', 'id_rol');
-    }
+
+   protected $fillable = [
+       'nombre',
+       'descripcion'
+   ];
+
+
+   // Relación con Usuarios
+   public function usuarios() {
+       return $this->hasMany(Usuario::class, 'id_rol', 'id_rol');
+   }
 }
+
+
