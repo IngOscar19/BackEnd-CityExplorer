@@ -1,66 +1,193 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+<h1 align="center">🌐 Laravel Backend API</h1>
 
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  <img src="https://img.shields.io/badge/Laravel-10.x-red?logo=laravel&style=flat-square" />
+  <img src="https://img.shields.io/badge/PHP-8.1-blue?logo=php&style=flat-square" />
+  <img src="https://img.shields.io/badge/MySQL-Database-orange?logo=mysql&style=flat-square" />
+  <img src="https://img.shields.io/badge/Sanctum-Auth-informational?style=flat-square" />
+  <img src="https://img.shields.io/badge/Stripe-Integration-purple?logo=stripe&style=flat-square" />
 </p>
 
-## About Laravel
+<p align="center">
+  <b>API RESTful desarrollada con Laravel para gestión de usuarios y lugares turísticos, con autenticación mediante Sanctum y pagos con Stripe.</b>
+</p>
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+```bash
+███████╗ █████╗ ███╗   ██╗ ██████╗ ███████╗██████╗ ██╗   ██╗
+██╔════╝██╔══██╗████╗  ██║██╔═══██╗██╔════╝██╔══██╗╚██╗ ██╔╝
+█████╗  ███████║██╔██╗ ██║██║   ██║█████╗  ██████╔╝ ╚████╔╝ 
+██╔══╝  ██╔══██║██║╚██╗██║██║   ██║██╔══╝  ██╔═══╝   ╚██╔╝  
+███████╗██║  ██║██║ ╚████║╚██████╔╝███████╗██║        ██║   
+╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚══════╝╚═╝        ╚═╝   
+```
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+# 🧾 Laravel Backend City Explorer - Tipos de usuarios como Anunciantes e Invitados, Lugares y Pagos con Stripe
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Este proyecto es una API RESTful construida con **Laravel**, que permite la gestión de **usuarios** y **lugares turísticos**, integrando autenticación mediante **Sanctum** y procesamiento de pagos mediante **Stripe**.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+---
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 🚀 Funcionalidades principales
 
-## Laravel Sponsors
+- ✅ Registro y login de usuarios con autenticación **Sanctum**
+- 🏝️ CRUD completo para **lugares turísticos**
+- 👤 CRUD completo para **Anunciantes**
+- 💳 Procesamiento de pagos usando **Stripe** (tarjeta de crédito/débito)
+- 🔐 Acceso protegido mediante tokens
+- 📄 Documentación y estructura organizada
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+---
 
-### Premium Partners
+## 📦 Requisitos
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+- PHP ^8.1
+- Composer
+- Docker
+- MySQL
+- Node.js y NPM (opcional si usas frontend)
+- Stripe API Key
 
-## Contributing
+---
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## 🛠 Instalación
 
-## Code of Conduct
+1. Clona el repositorio:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+git clone https://github.com/IngOscar19/BackEnd-CityExplorer.git
+cd BackEnd-CityExplorer
+```
+2. Crear El contenedor para la Base de Datos en Docker:
+    Guardar el archivo city.yml en una carpeta especifica
+    Abrir Docker
+   En Terminal (cmd)
+```bash
+cd Carpeta donde este el archivo city.yml
+docker-compose up -d --build
+```  
+3. Cargar el script de la base de datos:
 
-## Security Vulnerabilities
+Abrir el link del phpmyadmin
+Ingresar con el usuario y contraseña que estan en el archivo city.yml
+Copear las tablas y los inserts
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
-## License
+4. Instala las dependencias:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```bash
+composer require stripe/stripe-php
+
+composer require laravel/sanctum
+```
+
+4. Copia el archivo `.env` y configura tus variables:
+
+```bash
+cp .env.example .env
+```
+
+5. Configura la conexión a la base de datos en tu `.env`
+
+6. Ejecuta las migraciones :
+
+```bash
+php artisan migrate 
+```
+
+---
+
+## 🔐 Autenticación con Sanctum
+
+Este proyecto usa [Laravel Sanctum](https://laravel.com/docs/sanctum) para manejar la autenticación mediante tokens personales.  
+Asegúrate de publicar el vendor y configurar correctamente el middleware.
+
+---
+
+## 💳 Pagos con Stripe
+
+El proyecto está integrado con [Stripe](https://stripe.com) para pagos con tarjeta de crédito o débito.  
+Asegúrate de configurar estas claves en tu `.env`:
+
+```env
+STRIPE_KEY=pk_test_XXXXXXXXXXXX
+STRIPE_SECRET=sk_test_XXXXXXXXXXXX
+```
+
+Los pagos están relacionados con los lugares. Al registrar un lugar, se crea un registro de pago asociado.
+
+---
+
+## 📂 Estructura del proyecto
+
+```
+app/
+├── Http/
+│   ├── Controllers/
+|   |              ├── Controllers/
+|   |                  ├── CategoriaLugarController.php
+|   |                  ├── ComentarioController.php
+|   |                  ├── FavoritosController.php
+│   │                  ├── DireccionController.php
+│   │                  ├── ListaController.php
+|   |                  ├── ListaLugarController.php
+│   │                  ├── LugarController.php
+|   |                  ├── PagoController.php
+|   |                  ├── RolController.php
+│   │                  └── UsuarioController.php
+│   └── Middleware/
+├── Models/
+│   ├── CategoriaLugar.php
+│   ├── Comentario.php
+│   ├── Favoritos.php
+│   ├── Direccion.php
+│   ├── Lista.php
+│   ├── ListaLugar.php
+│   ├── Lugar.php
+│   ├── Pago.php
+│   ├── Rol.php
+│   └── Usuario.php
+routes/
+├── api.php
+├── web.php
+database/
+├── migrations/
+├── seeders/
+```
+
+---
+
+## 📮 Rutas principales (API)
+
+| Método | Ruta                          | Descripción                       |
+|--------|------------------------------ |---------------------------------- |
+| POST   | /api/user/login               | Iniciar sesión                    |
+| POST   | /api/user/register            | Registrar usuario                 |
+| GET    | /api/lugar                    | Obtener todos los lugares Activos |
+| GET    | /api/lugar                    | Obtener todos los lugares Activos |
+| POST   | /api/lugar/con-direccion      | Crear nuevo lugar con direccion   |
+| PATCH  | /api/lugar/{id}               | Editar lugar                      |
+| DELETE | /api/lugar/{id}               | Eliminar lugar                    |
+| POST   | /api/pago/pagar               | Procesar pago con Stripe          |
+
+---
+
+
+---
+
+## 👨‍💻 Autor
+
+Equipo de City Explorer
+Oscar Martin Espinosa Romero
+Jose Manuel Garcia Morales
+
+Proyecto académico de backend con Laravel + Sanctum + Stripe
+
+---
+
+## 📄 Licencia
+
+Este proyecto está bajo la licencia MIT.
