@@ -15,7 +15,8 @@ CREATE TABLE Usuario (
     apellidoP VARCHAR(50) NOT NULL,
     apellidoM VARCHAR(50),
     correo VARCHAR(100) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL, 
+    password VARCHAR(255) NOT NULL,
+    foto_perfil VARCHAR(255) NOT NULL,
     id_rol INT NOT NULL,
     activo BOOLEAN DEFAULT TRUE,
     FOREIGN KEY (id_rol) REFERENCES Rol(id_rol) ON DELETE RESTRICT ON UPDATE CASCADE
@@ -68,7 +69,7 @@ CREATE TABLE Lugar (
 CREATE TABLE Comentario (
     id_comentario INT PRIMARY KEY AUTO_INCREMENT,
     contenido TEXT NOT NULL,
-    valoracion TINYINT(1) NOT NULL CHECK (valoracion BETWEEN 1 AND 5),
+    valoracion INT NOT NULL,
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     id_usuario INT NOT NULL,
     id_lugar INT NOT NULL,
