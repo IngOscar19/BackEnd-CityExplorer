@@ -106,6 +106,8 @@ Este proyecto usa [Laravel Sanctum](https://laravel.com/docs/sanctum) para manej
 Asegúrate de publicar el vendor y configurar correctamente el middleware.
 
 ---
+## Comando para poder subir archivos desde el almacenamiento local
+php artisan storage:link
 
 ## 💳 Pagos con Stripe
 
