@@ -26,6 +26,7 @@ class Usuario extends Authenticatable
        'apellidoM',
        'correo',
        'password',
+       'foto_perfil',
        'id_rol',
    ];
 

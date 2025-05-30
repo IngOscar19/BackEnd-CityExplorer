@@ -32,6 +32,8 @@ Route::get('lugar/{id}', [LugarController::class, 'show'])->whereNumber('id');
 
 Route::get('direccion-publica/{id}', [DireccionController::class, 'show']);
 
+Route::get('usuarios', [UsuarioController::class, 'index']);
+
 
 // Rutas para Categoria (nueva)
 Route::prefix('categoria')->group(function() {
