@@ -297,9 +297,5 @@ class LugarController extends Controller
 
    return response()->json($lugares);
  }
-
-
-
-
-  
+ 
 }

@@ -34,6 +34,9 @@ Route::get('direccion-publica/{id}', [DireccionController::class, 'show']);
 
 Route::get('usuarios', [UsuarioController::class, 'index']);
 
+ Route::get('/lugar/{id}/estadisticas', [ComentarioController::class, 'estadisticasLugar']);
+ Route::get('/lugar/{id}', [ComentarioController::class, 'comentariosPorLugar']);
+
 
 // Rutas para Categoria (nueva)
 Route::prefix('categoria')->group(function() {
@@ -103,13 +106,16 @@ Route::middleware(['auth:sanctum'])->group(function() {
    });
 
    // Rutas para ComentarioController
-   Route::prefix('comentario')->group(function() {
-       Route::get('', [ComentarioController::class, 'index']);
-       Route::post('', [ComentarioController::class, 'store']);
-       Route::get('/{id}', [ComentarioController::class, 'show'])->whereNumber('id');
-       Route::patch('/{id}', [ComentarioController::class, 'update'])->whereNumber('id');
-       Route::delete('/{id}', [ComentarioController::class, 'destroy'])->whereNumber('id');
-   });
+   Route::prefix('comentarios')->group(function () {
+        Route::get('/', [ComentarioController::class, 'index']);
+        Route::post('/', [ComentarioController::class, 'create']);
+        Route::get('/{id}', [ComentarioController::class, 'show']);
+        Route::put('/{id}', [ComentarioController::class, 'update']);
+        Route::delete('/{id}', [ComentarioController::class, 'destroy']);
+    
+    // Rutas adicionales
+       
+    });
 
    // Rutas para FavoritosController
    Route::prefix('favorito')->group(function() {
