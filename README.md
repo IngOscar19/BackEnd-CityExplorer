@@ -67,7 +67,11 @@ cd BackEnd-CityExplorer
    En Terminal (cmd)
 ```bash
 cd Carpeta donde este el archivo city.yml
-docker-compose up -d --build
+docker-compose up -d --build (Para comando basico)
+Si se deja el nombre de City al archivo .yml usar:
+docker-compose -f City.yml up -d --build
+
+
 ```  
 3. Cargar el script de la base de datos:
 
