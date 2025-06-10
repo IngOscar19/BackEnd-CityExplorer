@@ -62,7 +62,7 @@ CREATE TABLE Lugar (
     FOREIGN KEY (id_categoria) REFERENCES Categoria_Lugar(id_categoria) ON DELETE RESTRICT ON UPDATE CASCADE,
     FOREIGN KEY (id_usuario) REFERENCES Usuario(id_usuario) ON DELETE RESTRICT ON UPDATE CASCADE,
     FOREIGN KEY (id_direccion) REFERENCES Direccion(id_direccion) ON DELETE CASCADE ON UPDATE CASCADE,
-    url VARCHAR(255) DEFAULT NOT NULL
+    url VARCHAR(255) NOT NULL
 );
 
 -- Tabla Comentario
