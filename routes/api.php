@@ -34,8 +34,9 @@ Route::get('direccion-publica/{id}', [DireccionController::class, 'show']);
 
 Route::get('usuarios', [UsuarioController::class, 'index']);
 
- Route::get('/lugar/{id}/estadisticas', [ComentarioController::class, 'estadisticasLugar']);
- Route::get('/lugar/{id}', [ComentarioController::class, 'comentariosPorLugar']);
+Route::get('/lugar/{id}/comentarios', [ComentarioController::class, 'comentariosPorLugar']);
+Route::get('/lugar/{id}/estadisticas', [ComentarioController::class, 'estadisticasLugar']);
+
 
 
 // Rutas para Categoria (nueva)
@@ -62,6 +63,7 @@ Route::middleware(['auth:sanctum'])->group(function() {
        Route::get('/{id}', [UsuarioController::class, 'show'])->whereNumber('id');
        Route::patch('/{id}', [UsuarioController::class, 'update'])->whereNumber('id');
        Route::delete('/{id}', [UsuarioController::class, 'destroy'])->whereNumber('id');
+       Route::post('/{id}/update', [UsuarioController::class, 'update'])->whereNumber('id');
    });
 
    // Rutas para RolController
@@ -117,13 +119,16 @@ Route::middleware(['auth:sanctum'])->group(function() {
        
     });
 
-   // Rutas para FavoritosController
-   Route::prefix('favorito')->group(function() {
-       Route::get('', [FavoritosController::class, 'index']);
-       Route::post('', [FavoritosController::class, 'store']);
-       Route::get('/{id}', [FavoritosController::class, 'show'])->whereNumber('id');
-       Route::delete('/{id}', [FavoritosController::class, 'destroy'])->whereNumber('id');
-   });
+    Route::prefix('favoritos')->group(function () {
+        Route::get('/', [FavoritosController::class, 'index']);
+        Route::post('/', [FavoritosController::class, 'store']);
+        Route::delete('/{id_lugar}', [FavoritosController::class, 'destroy']);
+        
+        // Rutas adicionales
+        Route::get('/check/{id_lugar}', [FavoritosController::class, 'check']);
+        Route::post('/toggle', [FavoritosController::class, 'toggle']);
+        Route::get('/stats', [FavoritosController::class, 'stats']);
+    });
 
     // Rutas para PagoController
     Route::prefix('pago')->group(function() {

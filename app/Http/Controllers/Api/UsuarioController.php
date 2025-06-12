@@ -98,66 +98,107 @@ class UsuarioController extends Controller
             'data' => $usuario,
         ]);
     }
-
-    /**
-     * Actualizar un usuario.
-     */
+    
+   /**
+ * Actualizar un usuario - Usando POST con _method
+ */
     public function update(Request $request, $id)
-    {
-        $usuario = Usuario::find($id);
+ {
+    $usuario = Usuario::find($id);
+    
+    if (!$usuario) {
+        return response()->json([
+            'estatus' => 0,
+            'mensaje' => 'Usuario no encontrado'
+        ], 404);
+    }
 
-        if (!$usuario) {
-            return response()->json([
-                'estatus' => 0,
-                'mensaje' => 'Usuario no encontrado',
-            ], 404);
-        }
+    // Obtener datos directamente
+    $input = [];
+    
+    if ($request->filled('nombre')) {
+        $input['nombre'] = $request->input('nombre');
+    }
+    
+    if ($request->filled('apellidoP')) {
+        $input['apellidoP'] = $request->input('apellidoP');
+    }
+    
+    if ($request->has('apellidoM')) {
+        $input['apellidoM'] = $request->input('apellidoM');
+    }
+    
+    if ($request->filled('correo')) {
+        $input['correo'] = $request->input('correo');
+    }
+    
+    if ($request->filled('password')) {
+        $input['password'] = $request->input('password');
+    }
+    
+    if ($request->filled('id_rol')) {
+        $input['id_rol'] = (int) $request->input('id_rol');
+    }
 
-        // Validación de datos
-        $validator = Validator::make($request->all(), [
-            'nombre' => 'nullable|string|max:50',
-            'apellidoP' => 'nullable|string|max:50',
-            'apellidoM' => 'nullable|string|max:50',
-            'correo' => 'nullable|email|unique:Usuario,correo,' . $id . ',id_usuario',
-            'password' => 'nullable|string|min:6',
-            'id_rol' => 'nullable|exists:Rol,id_rol',
-            'foto_perfil' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-        ]);
+    // Si no hay datos para actualizar
+    if (empty($input) && !$request->hasFile('foto_perfil')) {
+        return response()->json([
+            'estatus' => 0,
+            'mensaje' => 'No se recibieron datos para actualizar',
+            'debug' => [
+                'all_data' => $request->all(),
+                'method' => $request->method(),
+                'content_type' => $request->header('Content-Type')
+            ]
+        ], 400);
+    }
 
+    // Validación
+    $rules = [];
+    if (isset($input['nombre'])) $rules['nombre'] = 'required|string|max:50';
+    if (isset($input['apellidoP'])) $rules['apellidoP'] = 'required|string|max:50';
+    if (array_key_exists('apellidoM', $input)) $rules['apellidoM'] = 'nullable|string|max:50';
+    if (isset($input['correo'])) $rules['correo'] = 'required|email|unique:Usuario,correo,'.$id.',id_usuario';
+    if (isset($input['password'])) $rules['password'] = 'required|string|min:6';
+    if (isset($input['id_rol'])) $rules['id_rol'] = 'required|exists:Rol,id_rol';
+
+    if (!empty($rules)) {
+        $validator = Validator::make($input, $rules);
         if ($validator->fails()) {
             return response()->json([
                 'estatus' => 0,
-                'mensaje' => $validator->errors(),
+                'mensaje' => $validator->errors()
             ], 422);
         }
-
-        // Actualizar campos
-        if ($request->has('nombre')) $usuario->nombre = $request->nombre;
-        if ($request->has('apellidoP')) $usuario->apellidoP = $request->apellidoP;
-        if ($request->has('apellidoM')) $usuario->apellidoM = $request->apellidoM;
-        if ($request->has('correo')) $usuario->correo = $request->correo;
-        if ($request->has('password')) $usuario->password = Hash::make($request->password);
-        if ($request->has('id_rol')) $usuario->id_rol = $request->id_rol;
-
-        if ($request->hasFile('foto_perfil')) {
-            // Eliminar la imagen anterior si existe
-            if ($usuario->foto_perfil && Storage::disk('public')->exists($usuario->foto_perfil)) {
-                Storage::disk('public')->delete($usuario->foto_perfil);
-            }
-
-            $archivo = $request->file('foto_perfil');
-            $ruta = $archivo->store('fotos_perfil', 'public');
-            $usuario->foto_perfil = $ruta;
-        }
-
-        $usuario->save();
-
-        return response()->json([
-            'estatus' => 1,
-            'mensaje' => 'Usuario actualizado con éxito',
-            'data' => $usuario,
-        ]);
     }
+
+    // Actualizar campos
+    foreach ($input as $campo => $valor) {
+        if ($campo === 'password') {
+            $usuario->password = Hash::make($valor);
+        } else {
+            $usuario->$campo = $valor;
+        }
+    }
+
+    // Manejo de imagen
+    if ($request->hasFile('foto_perfil')) {
+        if ($usuario->foto_perfil && Storage::disk('public')->exists($usuario->foto_perfil)) {
+            Storage::disk('public')->delete($usuario->foto_perfil);
+        }
+        $usuario->foto_perfil = $request->file('foto_perfil')->store('fotos_perfil', 'public');
+    }
+
+    $usuario->save();
+
+    return response()->json([
+        'estatus' => 1,
+        'mensaje' => 'Usuario actualizado con éxito',
+        'data' => $usuario->fresh()
+    ]);
+ }
+    
+   
 
     /**
      * Eliminar un usuario.
