@@ -139,6 +139,13 @@ INSERT INTO Categoria_Lugar (id_categoria, nombre, descripcion) VALUES
 (8, 'Tiendas', 'Establecimientos comerciales minoristas que ofrecen productos específicos, desde ropa y calzado hasta artículos de uso cotidiano, y donde el cliente puede encontrar variedad y atención personalizada.'),
 (9, 'Puestos locales', 'Pequeños establecimientos de comida o venta que ofrecen productos frescos y regionales, ideales para disfrutar de antojos locales y experimentar sabores auténticos en un ambiente informal.'),
 (10, 'Ayuda', 'Lugares que brindan asistencia y apoyo a quienes lo necesitan, ofreciendo servicios como asesoría, ayuda humanitaria o programas comunitarios para mejorar la calidad de vida.');
+-- Inserción de Categorías de Lugar
+INSERT INTO Categoria_Lugar (id_categoria, nombre, descripcion) VALUES
+(11, 'Patrimonios y Sitios Historicos', 'Lugares de gran valor histórico y cultural que representan la herencia y el legado de la región, ideales para aprender sobre el pasado y apreciar la arquitectura antigua.'),
+(12, 'Arte y Cultura', 'Espacios dedicados a la expresión artística y cultural como museos, galerías y centros culturales donde se promueve la creatividad y el conocimiento.'),
+(13, 'Jardines', 'Áreas naturales cuidadosamente diseñadas con vegetación ornamental, ideales para paseos tranquilos, descanso y apreciación del entorno natural.'),
+(14, 'Bebidas', 'Establecimientos especializados en la preparación y venta de bebidas, desde cafés y teterías hasta bares y coctelerías, ideales para socializar y relajarse.'),
+(15, 'Tours', 'Servicios organizados que ofrecen recorridos guiados por distintos puntos de interés, permitiendo a los visitantes conocer a fondo la historia, cultura y atractivos del lugar.');
 
 
 -- Inserción de Métodos de Pago

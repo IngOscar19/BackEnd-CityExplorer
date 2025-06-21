@@ -34,7 +34,7 @@ Route::get('direccion-publica/{id}', [DireccionController::class, 'show']);
 
 Route::get('usuarios', [UsuarioController::class, 'index']);
 
-Route::get('/lugar/{id}/comentarios', [ComentarioController::class, 'comentariosPorLugar']);
+Route::get('/lugar/{id}/comentarios',  [ComentarioController::class, 'comentariosPorLugar']);
 Route::get('/lugar/{id}/estadisticas', [ComentarioController::class, 'estadisticasLugar']);
 
 
