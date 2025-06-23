@@ -125,6 +125,7 @@ return [
 
     
     'providers' => [
+         
     /*
      * Framework Service Providers...
      */
@@ -162,6 +163,12 @@ return [
     App\Providers\AuthServiceProvider::class,
     // Si falta, agregarlo:
     App\Providers\RouteServiceProvider::class,
+   Intervention\Image\ImageServiceProviderLaravelRecent::class,
+    
+  ],
+
+  'aliases' => [
+    'Image' => Intervention\Image\Facades\Image::class,
   ],
 
 ];

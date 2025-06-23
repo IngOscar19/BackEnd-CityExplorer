@@ -61,9 +61,17 @@ CREATE TABLE Lugar (
     activo BOOLEAN DEFAULT TRUE,
     FOREIGN KEY (id_categoria) REFERENCES Categoria_Lugar(id_categoria) ON DELETE RESTRICT ON UPDATE CASCADE,
     FOREIGN KEY (id_usuario) REFERENCES Usuario(id_usuario) ON DELETE RESTRICT ON UPDATE CASCADE,
-    FOREIGN KEY (id_direccion) REFERENCES Direccion(id_direccion) ON DELETE CASCADE ON UPDATE CASCADE,
-    url VARCHAR(255) NOT NULL
+    FOREIGN KEY (id_direccion) REFERENCES Direccion(id_direccion) ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+CREATE TABLE Imagenes (
+    id_imagen INT PRIMARY KEY AUTO_INCREMENT,
+    id_lugar INT NOT NULL,
+    url VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_lugar) REFERENCES Lugar(id_lugar) ON DELETE CASCADE
+);
+
 
 -- Tabla Comentario
 CREATE TABLE Comentario (

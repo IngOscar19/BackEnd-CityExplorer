@@ -1,0 +1,30 @@
+# Node modules y dependencias JS
+node_modules
+
+# Dependencias PHP instaladas por Composer
+vendor
+
+# Archivos de almacenamiento y caché
+storage
+bootstrap/cache
+
+# Variables de entorno (sensible)
+.env
+
+# Git y configuración local
+.git
+.gitignore
+
+# Archivos Docker y docker-compose (opcional)
+Dockerfile
+City.yml
+docker-compose.yml
+
+# Archivos de IDE/editor
+.idea
+.vscode
+*.log
+
+# Otros archivos temporales
+*.swp
+*.tmp
