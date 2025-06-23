@@ -37,11 +37,12 @@ Route::get('usuarios', [UsuarioController::class, 'index']);
 Route::get('/lugar/{id}/comentarios',  [ComentarioController::class, 'comentariosPorLugar']);
 Route::get('/lugar/{id}/estadisticas', [ComentarioController::class, 'estadisticasLugar']);
 
+Route::get('categorias', [CategoriaLugarController::class, 'index']); // Obtener todas las categorías
 
 
 // Rutas para Categoria (nueva)
 Route::prefix('categoria')->group(function() {
-    Route::get('', [CategoriaLugarController::class, 'index']);  // Obtener todas las categorías
+     
     Route::get('/{id}', [CategoriaLugarController::class, 'show'])  // Obtener una categoría específica
         ->whereNumber('id');
 });
