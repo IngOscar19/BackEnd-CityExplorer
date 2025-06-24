@@ -11,18 +11,12 @@ class CategoriaLugarController extends Controller
 {
     public function index(Request $request)
     {
-        $rows = (int)$request->input('rows', 10);
-        $page = 1 + (int)$request->input('page', 0);
+        $categorias = CategoriaLugar::all();
 
-        \Illuminate\Pagination\Paginator::currentPageResolver(function() use ($page) {
-            return $page;
-        });
-
-        $categorias = CategoriaLugar::paginate($rows);
         return response()->json([
-            'estatus' => 1,
-            'data' => $categorias->items(),
-            'total' => $categorias->total()
+        'estatus' => 1,
+        'data' => $categorias,
+        'total' => $categorias->count()
         ]);
     }
 

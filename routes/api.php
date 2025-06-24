@@ -39,7 +39,8 @@ Route::get('/lugar/{id}/estadisticas', [ComentarioController::class, 'estadistic
 
 Route::get('categorias', [CategoriaLugarController::class, 'index']); // Obtener todas las categorías
 
-
+Route::get('imagenes/{id}', [LugarController::class, 'getImagenes'])
+    ->whereNumber('id'); // Obtener imágenes de un lugar específico
 // Rutas para Categoria (nueva)
 Route::prefix('categoria')->group(function() {
      
@@ -52,6 +53,26 @@ Route::prefix('direccion')->group(function() {
     Route::get('', [DireccionController::class, 'index']);  // Obtener todas las direcciones
     Route::get('/{id}', [DireccionController::class, 'show'])  // Obtener una dirección específica
         ->whereNumber('id');
+});
+
+use App\Models\Imagenes;
+
+Route::get('/lugar/{id}/imagenes', function ($id) {
+    $imagenes = Imagenes::where('id_lugar', $id)->get();
+
+    if ($imagenes->isEmpty()) {
+        return response()->json(['mensaje' => 'No se encontraron imágenes para este lugar.'], 404);
+    }
+
+    // Agrega la URL completa a cada imagen
+    $imagenesConUrl = $imagenes->map(function ($img) {
+        return [
+            'id_imagen' => $img->id_imagen,
+            'url' => asset('storage/' . $img->url), // genera la URL completa
+        ];
+    });
+
+    return response()->json($imagenesConUrl);
 });
 
 // Grupo de rutas protegidas con autenticación Sanctum

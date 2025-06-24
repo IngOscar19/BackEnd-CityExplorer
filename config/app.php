@@ -163,7 +163,7 @@ return [
     App\Providers\AuthServiceProvider::class,
     // Si falta, agregarlo:
     App\Providers\RouteServiceProvider::class,
-   Intervention\Image\ImageServiceProviderLaravelRecent::class,
+    Intervention\Image\ImageServiceProvider::class,
     
   ],
 
