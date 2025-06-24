@@ -1,6 +1,4 @@
-CREATE DATABASE cityExplorer;
-USE cityExplorer;
-
+-- Script para crear la base de datos CityExplorer
 -- Tabla Rol
 CREATE TABLE Rol (
     id_rol INT PRIMARY KEY AUTO_INCREMENT,
@@ -146,7 +144,7 @@ INSERT INTO Categoria_Lugar (id_categoria, nombre, descripcion) VALUES
 (7, 'Super Mercados', 'Establecimientos comerciales de gran tamaño que ofrecen una amplia gama de alimentos y productos de consumo diario, facilitando las compras para el hogar en un solo lugar.'),
 (8, 'Tiendas', 'Establecimientos comerciales minoristas que ofrecen productos específicos, desde ropa y calzado hasta artículos de uso cotidiano, y donde el cliente puede encontrar variedad y atención personalizada.'),
 (9, 'Puestos locales', 'Pequeños establecimientos de comida o venta que ofrecen productos frescos y regionales, ideales para disfrutar de antojos locales y experimentar sabores auténticos en un ambiente informal.'),
-(10, 'Ayuda', 'Lugares que brindan asistencia y apoyo a quienes lo necesitan, ofreciendo servicios como asesoría, ayuda humanitaria o programas comunitarios para mejorar la calidad de vida.');
+(10, 'Servicios de Ayuda', 'Lugares que brindan asistencia y apoyo a quienes lo necesitan, ofreciendo servicios como asesoría, ayuda humanitaria o programas comunitarios para mejorar la calidad de vida.');
 -- Inserción de Categorías de Lugar
 INSERT INTO Categoria_Lugar (id_categoria, nombre, descripcion) VALUES
 (11, 'Patrimonios y Sitios Historicos', 'Lugares de gran valor histórico y cultural que representan la herencia y el legado de la región, ideales para aprender sobre el pasado y apreciar la arquitectura antigua.'),

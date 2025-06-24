@@ -122,7 +122,7 @@ Route::middleware(['auth:sanctum'])->group(function() {
    Route::prefix('lugar')->group(function() {
        Route::post('', [LugarController::class, 'store']);
        /* Route::get('/{id}', [LugarController::class, 'show'])->whereNumber('id'); */
-       Route::patch('/{id}', [LugarController::class, 'update'])->whereNumber('id');
+       Route::post('/{id}', [LugarController::class, 'update'])->whereNumber('id');
        Route::delete('/{id}', [LugarController::class, 'destroy'])->whereNumber('id');
 
        Route::post('/con-direccion', [LugarController::class, 'createWithDireccion'])

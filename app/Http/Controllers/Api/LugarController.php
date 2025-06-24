@@ -11,7 +11,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use App\Models\Imagenes;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Intervention\Image\Facades\Image;
+
 
 class LugarController extends Controller
 {
@@ -23,14 +25,19 @@ class LugarController extends Controller
 
    // Mostrar un solo lugar
    public function show($id)
-   {
-       $lugar = Lugar::find($id);
-       if (!$lugar) {
-           return response()->json(['mensaje' => 'Lugar no encontrado'], 404);
-       }
+ {
+    $lugar = Lugar::with('imagenes')->find($id);
+    
+    if (!$lugar) {
+        return response()->json(['mensaje' => 'Lugar no encontrado'], 404);
+    }
 
-       return response()->json($lugar);
-   }
+    // Transformar la respuesta para incluir las imágenes en la estructura principal
+    $response = $lugar->toArray();
+    $response['imagenes'] = $lugar->imagenes;
+
+    return response()->json($response);
+ }
 
    // Crear un nuevo lugar (solo anunciantes)
    public function store(Request $request)
@@ -98,98 +105,139 @@ class LugarController extends Controller
        }
    }
 
-   public function update(Request $request, $id)
-   {
-       $usuario = Auth::user();
-       $lugar = Lugar::find($id);
+    public function update(Request $request, $id)
+{
+    $usuario = Auth::user();
+    $lugar = Lugar::find($id);
 
-       if (!$lugar) {
-           return response()->json(['mensaje' => 'Lugar no encontrado'], 404);
-       }
+    if (!$lugar) {
+        return response()->json(['mensaje' => 'Lugar no encontrado'], 404);
+    }
 
-       if ($lugar->id_usuario !== $usuario->id_usuario) {
-           return response()->json(['mensaje' => 'No autorizado. Solo el creador puede editar este lugar.'], 403);
-       }
+    if ($lugar->id_usuario !== $usuario->id_usuario) {
+        return response()->json(['mensaje' => 'No autorizado. Solo el creador puede editar este lugar.'], 403);
+    }
 
-       try {
-           DB::beginTransaction();
+    DB::beginTransaction();
 
-           $request->validate([
-               'direccion.calle' => 'required|string|max:100',
-               'direccion.numero_int' => 'nullable|string|max:10',
-               'direccion.numero_ext' => 'required|string|max:10',
-               'direccion.colonia' => 'required|string|max:100',
-               'direccion.codigo_postal' => 'required|string|size:5',
+    try {
+        // Obtener todos los datos del request
+        $input = $request->all();
+        
+        // Reestructurar los datos para que funcione con la estructura recibida
+        $data = [
+            'direccion' => [
+                'calle' => $input['direccion']['calle'] ?? $input['direction']['calle'] ?? $input['calle'] ?? null,
+                'numero_ext' => $input['direccion']['numero_ext'] ?? $input['direction']['numero_ext'] ?? $input['numero_ext'] ?? null,
+                'numero_int' => $input['direccion']['numero_int'] ?? $input['direction']['numero_int'] ?? $input['numero_int'] ?? null,
+                'colonia' => $input['direccion']['colonia'] ?? $input['direction']['colonia'] ?? $input['colonia'] ?? null,
+                'codigo_postal' => $input['direccion']['codigo_postal'] ?? $input['direction']['codigo_postal'] ?? $input['codigo_postal'] ?? null,
+            ],
+            'lugar' => [
+                'nombre' => $input['lugar']['nombre'] ?? $input['nombre'] ?? null,
+                'descripcion' => $input['lugar']['descripcion'] ?? $input['descripcion'] ?? null,
+                'paginaWeb' => $input['lugar']['paginaWeb'] ?? $input['paginaWeb'] ?? null,
+                'dias_servicio' => $input['lugar']['dias_servicio'] ?? $input['dias_servicio'] ?? [],
+                'num_telefonico' => $input['lugar']['num_telefonico'] ?? $input['num_telefonico'] ?? null,
+                'horario_apertura' => $input['lugar']['horario_apertura'] ?? $input['horario_apertura'] ?? null,
+                'horario_cierre' => $input['lugar']['horario_cierre'] ?? $input['horario_cierre'] ?? null,
+                'id_categoria' => $input['lugar']['id_categoria'] ?? $input['id_categoria'] ?? null,
+                'activo' => $input['lugar']['activo'] ?? $input['activo'] ?? null,
+            ]
+        ];
 
-               'lugar.paginaWeb' => 'nullable|url',
-               'lugar.nombre' => 'required|string|max:100',
-               'lugar.descripcion' => 'nullable|string',
-               'lugar.dias_servicio' => 'nullable|array',
-               'lugar.num_telefonico' => 'nullable|string|max:15',
-               'lugar.horario_apertura' => 'nullable|date_format:H:i:s',
-               'lugar.horario_cierre' => 'nullable|date_format:H:i:s',
-               'lugar.id_categoria' => 'required|integer',
-               'lugar.activo' => 'boolean|nullable',
+        // Validar los datos
+        $validator = Validator::make($data, [
+            'direccion.calle' => 'required|string|max:100',
+            'direccion.numero_ext' => 'required|string|max:10',
+            'direccion.numero_int' => 'nullable|string|max:10',
+            'direccion.colonia' => 'required|string|max:100',
+            'direccion.codigo_postal' => 'required|string|size:5',
+            
+            'lugar.nombre' => 'required|string|max:100',
+            'lugar.id_categoria' => 'required|integer',
+            'lugar.paginaWeb' => 'nullable|url',
+            'lugar.descripcion' => 'nullable|string',
+            'lugar.dias_servicio' => 'nullable|array',
+            'lugar.num_telefonico' => 'nullable|string|max:15',
+            'lugar.horario_apertura' => 'nullable|date_format:H:i:s',
+            'lugar.horario_cierre' => 'nullable|date_format:H:i:s',
+            'lugar.activo' => 'nullable|boolean',
+        ]);
 
-               'imagenes.*' => 'image|mimes:jpg,jpeg,png,webp|max:2048',
-               'imagenes_a_eliminar' => 'array',
-               'imagenes_a_eliminar.*' => 'integer|exists:imagenes,id_imagen,id_lugar,' . $lugar->id_lugar,
-           ]);
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
 
-           $direccion = Direccion::find($lugar->id_direccion);
-           if ($direccion) {
-               $direccionData = array_filter($request->input('direccion'), fn($v) => $v !== '');
-               $direccion->update($direccionData);
-           }
+        // Actualizar dirección
+        $direccion = Direccion::find($lugar->id_direccion);
+        if ($direccion) {
+            $direccion->update($data['direccion']);
+        }
 
-           $lugarData = array_filter($request->input('lugar'), fn($v) => $v !== '');
-           $lugar->update($lugarData);
+        // Actualizar lugar
+        $lugar->update($data['lugar']);
 
-           if ($request->has('imagenes_a_eliminar')) {
-               $imagenes = Imagenes::whereIn('id_imagen', $request->imagenes_a_eliminar)
-                                 ->where('id_lugar', $lugar->id_lugar)
-                                 ->get();
+        // Manejo de imágenes a eliminar
+        if ($request->has('imagenes_a_eliminar')) {
+            $imagenesAEliminar = $request->imagenes_a_eliminar;
+            
+            // Si viene como string, convertir a array
+            if (is_string($imagenesAEliminar)) {
+                $imagenesAEliminar = explode(',', $imagenesAEliminar);
+            }
+            
+            $imagenes = Imagenes::whereIn('id_imagen', $imagenesAEliminar)
+                ->where('id_lugar', $lugar->id_lugar)
+                ->get();
 
-               foreach ($imagenes as $imagen) {
-                   Storage::disk('public')->delete($imagen->url);
-                   $imagen->delete();
-               }
-           }
+            foreach ($imagenes as $imagen) {
+                if (Storage::disk('public')->exists($imagen->url)) {
+                    Storage::disk('public')->delete($imagen->url);
+                }
+                $imagen->delete();
+            }
+        }
 
-           if ($request->hasFile('imagenes')) {
-               foreach ($request->file('imagenes') as $file) {
-                   $image = Image::make($file)->resize(1200, null, function ($constraint) {
-                       $constraint->aspectRatio();
-                       $constraint->upsize();
-                   });
+        // Procesar nuevas imágenes (verificar que sean archivos reales)
+        if ($request->hasFile('imagenes')) {
+            $imagenes = $request->file('imagenes');
+            
+            // Filtrar solo archivos válidos (no objetos vacíos)
+            $imagenesValidas = array_filter($imagenes, function($imagen) {
+                return $imagen !== null && is_object($imagen) && method_exists($imagen, 'isValid') && $imagen->isValid();
+            });
+            
+            foreach ($imagenesValidas as $file) {
+                $image = Image::make($file)->resize(1200, null, function ($constraint) {
+                    $constraint->aspectRatio();
+                    $constraint->upsize();
+                });
 
-                   $fileName = uniqid('img_') . '.jpg';
-                   $path = 'imagenes_lugares/' . $fileName;
+                $fileName = uniqid('img_') . '.jpg';
+                $path = 'imagenes_lugares/' . $fileName;
 
-                   Storage::disk('public')->put($path, (string) $image->encode('jpg', 80));
+                Storage::disk('public')->put($path, (string) $image->encode('jpg', 80));
 
-                   Imagenes::create([
-                       'id_lugar' => $lugar->id_lugar,
-                       'url' => $path,
-                   ]);
-               }
-           }
+                Imagenes::create([
+                    'id_lugar' => $lugar->id_lugar,
+                    'url' => $path,
+                ]);
+            }
+        }
 
-           DB::commit();
+        DB::commit();
 
-           return response()->json([
-               'mensaje' => 'Lugar actualizado correctamente',
-               'lugar' => $lugar->load('imagenes', 'direccion')
-           ]);
+        return response()->json([
+            'mensaje' => 'Lugar actualizado correctamente',
+            'lugar' => $lugar->fresh()->load('imagenes', 'direccion')
+        ]);
 
-       } catch (ValidationException $e) {
-           DB::rollBack();
-           return response()->json(['error' => $e->errors()], 422);
-       } catch (\Exception $e) {
-           DB::rollBack();
-           return response()->json(['error' => 'Error al actualizar: ' . $e->getMessage()], 500);
-       }
-   }
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json(['error' => 'Error al actualizar: ' . $e->getMessage()], 500);
+    }
+}
 
    // Eliminar lugar (solo el creador puede hacerlo)
    public function destroy($id)
