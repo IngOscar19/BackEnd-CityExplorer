@@ -3,44 +3,79 @@ pipeline {
 
     environment {
         COMPOSER_ALLOW_SUPERUSER = 1
+        DOCKER_COMPOSE_CMD = 'docker-compose -f City.yml'
     }
 
     stages {
+        stage('Preparar entorno') {
+            steps {
+                script {
+                    // Verificar que Docker esté instalado y accesible
+                    sh 'docker --version'
+                    
+                    // Limpiar contenedores previos por si existen
+                    sh "${DOCKER_COMPOSE_CMD} down || true"
+                }
+            }
+        }
+
         stage('Levantar contenedores') {
             steps {
-                echo "🚀 Levantando Laravel, MySQL y phpMyAdmin..."
-                sh 'docker-compose -f City.yml up -d'
-                sh 'sleep 15' 
+                script {
+                    echo "🚀 Levantando Laravel, MySQL y phpMyAdmin..."
+                    sh "${DOCKER_COMPOSE_CMD} up -d"
+                    
+                    // Esperar con verificación en lugar de sleep fijo
+                    sh '''
+                        attempts=0
+                        until ${DOCKER_COMPOSE_CMD} exec -T app php --version || [ $attempts -eq 10 ]; do
+                            attempts=$((attempts+1))
+                            sleep 5
+                            echo "Esperando que el contenedor de Laravel esté listo (intento $attempts/10)..."
+                        done
+                        if [ $attempts -eq 10 ]; then
+                            echo "❌ El contenedor no se inició correctamente"
+                            exit 1
+                        fi
+                    '''
+                }
             }
         }
 
-        stage('Instalar dependencias Laravel') {
+        stage('Instalar dependencias') {
             steps {
-                echo "📦 Instalando dependencias PHP..."
-                sh 'docker compose exec -T app composer install'
-                echo "🔑 Generando clave de la app..."
-                sh 'docker compose exec -T app cp .env.example .env'
-                sh 'docker compose exec -T app php artisan key:generate'
+                script {
+                    echo "📦 Instalando dependencias PHP..."
+                    sh "${DOCKER_COMPOSE_CMD} exec -T app composer install --no-interaction --prefer-dist --optimize-autoloader"
+                    
+                    echo "🔑 Configurando entorno..."
+                    sh """
+                        ${DOCKER_COMPOSE_CMD} exec -T app cp .env.example .env || true
+                        ${DOCKER_COMPOSE_CMD} exec -T app php artisan key:generate
+                    """
+                }
             }
         }
 
-        stage('Migraciones') {
+        stage('Configurar base de datos') {
             steps {
-                echo "🧬 Ejecutando migraciones..."
-                sh 'docker compose exec -T app php artisan migrate --force'
+                script {
+                    echo "🛠️ Configurando base de datos..."
+                    sh """
+                        ${DOCKER_COMPOSE_CMD} exec -T app php artisan config:clear
+                        ${DOCKER_COMPOSE_CMD} exec -T app php artisan cache:clear
+                        ${DOCKER_COMPOSE_CMD} exec -T app php artisan migrate --force
+                    """
+                }
             }
         }
 
         stage('Ejecutar pruebas') {
             steps {
-                echo "🧪 Ejecutando pruebas..."
-                sh 'docker compose exec -T app php artisan test'
-            }
-        }
-
-        stage('Finalizar') {
-            steps {
-                echo "✅ Pipeline completado correctamente"
+                script {
+                    echo "🧪 Ejecutando pruebas..."
+                    sh "${DOCKER_COMPOSE_CMD} exec -T app php artisan test"
+                }
             }
         }
     }
@@ -48,7 +83,11 @@ pipeline {
     post {
         always {
             echo "🧹 Limpiando contenedores..."
-            sh 'docker compose down'
+            sh "${DOCKER_COMPOSE_CMD} down"
+        }
+        failure {
+            echo "❌ Pipeline falló - Revisar logs para detalles"
+            // Opcional: Notificar por email/Slack/etc
         }
     }
 }
