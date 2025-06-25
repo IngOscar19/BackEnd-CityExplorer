@@ -9,8 +9,8 @@ pipeline {
         stage('Levantar contenedores') {
             steps {
                 echo "🚀 Levantando Laravel, MySQL y phpMyAdmin..."
-                sh 'docker compose up -d --build'
-                sh 'sleep 15' // espera que mysql esté listo
+                sh 'docker-compose -f City.yml up -d'
+                sh 'sleep 15' 
             }
         }
 
