@@ -40,7 +40,8 @@ CREATE TABLE Metodo_Pago (
 CREATE TABLE Categoria_Lugar (
     id_categoria INT PRIMARY KEY AUTO_INCREMENT,
     nombre VARCHAR(50) NOT NULL,
-    descripcion TEXT
+    descripcion TEXT,
+    icono VARCHAR(255)
 );
 
 -- Tabla Lugar con Relación a Dirección
