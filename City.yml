@@ -1,20 +1,27 @@
+version: '3.8'
+
 services:
   app:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: laravel_app
     ports:
-      - 8000:8000
+      - "8000:8000"
     volumes:
       - ./:/var/www/html
       - storage_data:/var/www/html/storage
     depends_on:
       - mysql
+    networks:
+      - laravel_net
 
   mysql:
     image: mysql:8.0
+    container_name: laravel_mysql
+    restart: always
     ports:
-      - 3306:3306
+      - "3306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: city_explorer
@@ -22,16 +29,28 @@ services:
       MYSQL_PASSWORD: '@CrowView29'
     volumes:
       - mysql_data:/var/lib/mysql
-      
+    networks:
+      - laravel_net
+
   phpmyadmin:
-    image: phpmyadmin
+    image: phpmyadmin/phpmyadmin
+    container_name: laravel_phpmyadmin
+    restart: always
     ports:
-      - 8080:80
+      - "8080:80"
     environment:
       PMA_HOST: mysql
+      PMA_USER: usuario
+      PMA_PASSWORD: '@CrowView29'
     depends_on:
       - mysql
+    networks:
+      - laravel_net
 
 volumes:
   mysql_data:
   storage_data:
+
+networks:
+  laravel_net:
+    driver: bridge

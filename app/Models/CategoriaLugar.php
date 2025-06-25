@@ -14,6 +14,7 @@ class CategoriaLugar extends Model {
 
     protected $fillable = [
         'nombre',
-        'descripcion'
+        'descripcion',
+        'icono',
     ];
 }
