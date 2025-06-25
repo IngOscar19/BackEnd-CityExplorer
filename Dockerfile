@@ -1,12 +1,12 @@
 FROM php:8.2-fpm-bullseye
 
-# Actualizar e instalar extensiones necesarias
 RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y \
-        libzip-dev zip unzip git curl libpng-dev libjpeg-dev libfreetype6-dev \
-    && docker-php-ext-install zip pdo pdo_mysql mbstring gd \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+        libzip-dev zip unzip git curl libpng-dev libjpeg-dev libfreetype6-dev pkg-config libonig-dev libxml2-dev && \
+    docker-php-ext-configure gd --with-freetype --with-jpeg && \
+    docker-php-ext-install zip pdo pdo_mysql mbstring gd && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Establecer directorio de trabajo
 WORKDIR /var/www/html
