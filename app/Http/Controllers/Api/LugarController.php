@@ -81,7 +81,7 @@ class LugarController extends Controller
                 ['id_usuario' => $usuario->id_usuario]
             ));
 
-            // Procesar imágenes si existen
+            // Procesar imágenes que ya existen
             if ($request->has('imagenes')) {
                 $this->procesarImagenes($lugar, $request->file('imagenes'));
             }
@@ -252,7 +252,10 @@ class LugarController extends Controller
         // Añadir nuevas imágenes
         if ($request->hasFile('nuevas_imagenes')) {
             $this->procesarImagenes($lugar, $request->file('nuevas_imagenes'));
+        } elseif ($request->hasFile('imagenes')) {
+            $this->procesarImagenes($lugar, $request->file('imagenes'));
         }
+
     }
 
     /**

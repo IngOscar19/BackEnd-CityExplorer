@@ -1,4 +1,4 @@
--- Script para crear la base de datos CityExplorer
+
 -- Tabla Rol
 CREATE TABLE Rol (
     id_rol INT PRIMARY KEY AUTO_INCREMENT,
