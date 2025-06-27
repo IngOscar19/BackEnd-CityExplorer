@@ -72,6 +72,12 @@ class LugarController extends Controller
             return response()->json(['error' => $validator->errors()], 422);
         }
 
+        // Validar duplicados
+        $duplicadoValidation = $this->validarLugarDuplicado($request->nombre, $request->id_direccion);
+        if ($duplicadoValidation) {
+            return $duplicadoValidation;
+        }
+
         DB::beginTransaction();
 
         try {
@@ -122,6 +128,14 @@ class LugarController extends Controller
 
             if ($validator->fails()) {
                 return response()->json(['error' => $validator->errors()], 422);
+            }
+
+            // Validar duplicados si se está cambiando el nombre
+            if (isset($data['lugar']['nombre']) && $data['lugar']['nombre'] !== $lugar->nombre) {
+                $duplicadoValidation = $this->validarLugarDuplicado($data['lugar']['nombre'], $lugar->id_direccion, $id);
+                if ($duplicadoValidation) {
+                    return $duplicadoValidation;
+                }
             }
 
             // Actualizar dirección
@@ -188,6 +202,68 @@ class LugarController extends Controller
     }
 
     // Métodos auxiliares protegidos
+
+    /**
+     * Valida si existe un lugar duplicado
+     */
+    protected function validarLugarDuplicado($nombre, $idDireccion, $excluirId = null)
+    {
+        $query = Lugar::where('nombre', 'LIKE', trim($nombre))
+                     ->where('id_direccion', $idDireccion);
+
+        if ($excluirId) {
+            $query->where('id_lugar', '!=', $excluirId);
+        }
+
+        $lugarExistente = $query->first();
+
+        if ($lugarExistente) {
+            return response()->json([
+                'error' => [
+                    'duplicado' => ['Ya existe un lugar con el mismo nombre en esta dirección.']
+                ]
+            ], 422);
+        }
+
+        return null;
+    }
+
+    /**
+     * Valida si existe un lugar duplicado usando datos de dirección
+     */
+    protected function validarLugarDuplicadoPorDireccion($nombre, $direccionData, $excluirId = null)
+    {
+        // Buscar direcciones similares
+        $direccionesSimilares = Direccion::where('calle', 'LIKE', trim($direccionData['calle']))
+                                        ->where('numero_ext', trim($direccionData['numero_ext']))
+                                        ->where('colonia', 'LIKE', trim($direccionData['colonia']))
+                                        ->where('codigo_postal', trim($direccionData['codigo_postal']))
+                                        ->pluck('id_direccion');
+
+        if ($direccionesSimilares->isEmpty()) {
+            return null; // No hay direcciones similares
+        }
+
+        // Buscar lugares con el mismo nombre en direcciones similares
+        $query = Lugar::where('nombre', 'LIKE', trim($nombre))
+                     ->whereIn('id_direccion', $direccionesSimilares);
+
+        if ($excluirId) {
+            $query->where('id_lugar', '!=', $excluirId);
+        }
+
+        $lugarExistente = $query->first();
+
+        if ($lugarExistente) {
+            return response()->json([
+                'error' => [
+                    'duplicado' => ['Ya existe un lugar con el mismo nombre en una dirección similar.']
+                ]
+            ], 422);
+        }
+
+        return null;
+    }
 
     /**
      * Procesa y guarda imágenes para un lugar
@@ -358,6 +434,12 @@ class LugarController extends Controller
         // Extraer datos anidados
         $direccionData = $request->input('direccion');
         $lugarData = $request->input('lugar');
+
+        // Validar duplicados antes de crear la dirección
+        $duplicadoValidation = $this->validarLugarDuplicadoPorDireccion($lugarData['nombre'], $direccionData);
+        if ($duplicadoValidation) {
+            return $duplicadoValidation;
+        }
 
         // Limpiar campos vacíos opcionales
         $direccionData = array_filter($direccionData, fn($v) => $v !== '');
