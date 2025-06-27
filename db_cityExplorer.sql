@@ -129,8 +129,8 @@ CREATE TABLE Lista_Lugar (
     FOREIGN KEY (id_lugar) REFERENCES Lugar(id_lugar) ON DELETE CASCADE ON UPDATE CASCADE,
     UNIQUE (id_lista, id_lugar)
 );
-
     
+
 -- Inserción de Roles Corregida
 INSERT INTO Rol (nombre, descripcion) VALUES ('Usuario', 'Rol con permisos totales');
 INSERT INTO Rol (nombre, descripcion) VALUES ('Anunciante', 'Rol para publicar lugares');
