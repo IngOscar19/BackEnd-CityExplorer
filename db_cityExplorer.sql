@@ -130,7 +130,7 @@ CREATE TABLE Lista_Lugar (
     UNIQUE (id_lista, id_lugar)
 );
     
-
+    
 -- Inserción de Roles Corregida
 INSERT INTO Rol (nombre, descripcion) VALUES ('Usuario', 'Rol con permisos totales');
 INSERT INTO Rol (nombre, descripcion) VALUES ('Anunciante', 'Rol para publicar lugares');

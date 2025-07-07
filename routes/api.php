@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\ListaController;
 use App\Http\Controllers\Api\ListaLugarController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Models\Imagenes;
 
 // Ruta de prueba
 Route::post('hola', function() {
@@ -55,7 +56,7 @@ Route::prefix('direccion')->group(function() {
         ->whereNumber('id');
 });
 
-use App\Models\Imagenes;
+
 
 Route::get('/lugar/{id}/imagenes', function ($id) {
     $imagenes = Imagenes::where('id_lugar', $id)->get();
