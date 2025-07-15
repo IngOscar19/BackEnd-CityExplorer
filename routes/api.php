@@ -155,10 +155,31 @@ Route::middleware(['auth:sanctum'])->group(function() {
 
     // Rutas para PagoController
     Route::prefix('pago')->group(function() {
+        // Rutas administrativas (solo para anunciantes)
         Route::get('', [PagoController::class, 'index']); // Obtener todos los pagos
-        Route::post('/pagar', [PagoController::class, 'pagar'])->name('pago.pagar');
         Route::get('/{id}', [PagoController::class, 'show'])->whereNumber('id'); // Obtener pago por ID
         Route::delete('/{id}', [PagoController::class, 'destroy'])->whereNumber('id'); // Eliminar pago por ID
+        
+        // Rutas de usuario
+        Route::get('/mis-pagos', [PagoController::class, 'misPagos']); // Obtener pagos del usuario
+        
+        // Rutas de Stripe - Setup y configuración
+        Route::post('/setup-intent', [PagoController::class, 'crearSetupIntent']); // Crear setup intent
+        Route::post('/guardar-metodo', [PagoController::class, 'guardarMetodoPago']); // Guardar método de pago
+        
+        // Rutas de gestión de tarjetas
+        Route::get('/tarjeta-guardada', [PagoController::class, 'obtenerTarjetaGuardada']); // Ver tarjeta guardada
+        Route::delete('/tarjeta-guardada', [PagoController::class, 'eliminarTarjetaGuardada']); // Eliminar tarjeta guardada
+        
+        // Rutas de procesamiento de pagos
+        Route::post('/pagar', [PagoController::class, 'pagar']); // Pago manual (con CVV)
+        Route::post('/domiciliado', [PagoController::class, 'pagarDomiciliado']); // Pago domiciliado (sin CVV)
+        
+        // Rutas adicionales de utilidad
+        //Route::get('/historial/{id_lugar}', [PagoController::class, 'historialPagosLugar'])->whereNumber('id_lugar'); // Historial de pagos por lugar
+        Route::post('/verificar-pago/{payment_intent_id}', [PagoController::class, 'verificarPago']); // Verificar estado de pago
+        //Route::get('/estadisticas', [PagoController::class, 'estadisticasPagos']); // Estadísticas de pagos del usuario
+        Route::post('/reembolsar/{id}', [PagoController::class, 'reembolsar'])->whereNumber('id'); // Reembolsar pago (solo anunciantes)
     });
 
    // Rutas para ListaController

@@ -28,6 +28,8 @@ class Usuario extends Authenticatable
        'password',
        'foto_perfil',
        'id_rol',
+       'stripe_customer_id',
+       'stripe_payment_method_id',
    ];
 
 
