@@ -38,6 +38,11 @@ return [
         'secret' => env('STRIPE_SECRET'),
         'key' => env('STRIPE_KEY'),
     ],
+    'pipedream' => [
+        'webhook_url' => env('PIPEDREAM_WEBHOOK_URL'),
+        'timeout' => 10,
+    ],
+
 
 
 ];

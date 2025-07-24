@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\ListaLugarController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Models\Imagenes;
+use App\Http\Controllers\Api\PasswordResetController;
 
 // Ruta de prueba
 Route::post('hola', function() {
@@ -182,22 +183,15 @@ Route::middleware(['auth:sanctum'])->group(function() {
         Route::post('/reembolsar/{id}', [PagoController::class, 'reembolsar'])->whereNumber('id'); // Reembolsar pago (solo anunciantes)
     });
 
-   // Rutas para ListaController
-   Route::prefix('lista')->group(function() {
-       Route::get('', [ListaController::class, 'index']);
-       Route::post('', [ListaController::class, 'store']);
-       Route::get('/{id}', [ListaController::class, 'show'])->whereNumber('id');
-       Route::patch('/{id}', [ListaController::class, 'update'])->whereNumber('id');
-       Route::delete('/{id}', [ListaController::class, 'destroy'])->whereNumber('id');
-   });
+    Route::prefix('password')->group(function () {
+    Route::post('/forgot', [PasswordResetController::class, 'sendResetCode']);
+    Route::post('/reset', [PasswordResetController::class, 'verifyCode']);
+    Route::post('/check-status', [PasswordResetController::class, 'checkCodeStatus']);
+    });
 
-   // Rutas para ListaLugarController
-   Route::prefix('lista_lugar')->group(function() {
-       Route::get('', [ListaLugarController::class, 'index']);
-       Route::post('', [ListaLugarController::class, 'store']);
-       Route::get('/{id}', [ListaLugarController::class, 'show'])->whereNumber('id');
-       Route::delete('/{id}', [ListaLugarController::class, 'destroy'])->whereNumber('id');
-   });
+    
+
+   
 });
 
 // Obtener la autenticación del usuario
