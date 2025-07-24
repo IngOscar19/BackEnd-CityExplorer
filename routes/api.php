@@ -77,6 +77,12 @@ Route::get('/lugar/{id}/imagenes', function ($id) {
     return response()->json($imagenesConUrl);
 });
 
+Route::prefix('password')->group(function () {
+    Route::post('/forgot', [PasswordResetController::class, 'sendResetCode']);
+    Route::post('/reset', [PasswordResetController::class, 'verifyCode']);
+    Route::post('/check-status', [PasswordResetController::class, 'checkCodeStatus']);
+    });
+
 // Grupo de rutas protegidas con autenticación Sanctum
 Route::middleware(['auth:sanctum'])->group(function() {
 
@@ -183,11 +189,7 @@ Route::middleware(['auth:sanctum'])->group(function() {
         Route::post('/reembolsar/{id}', [PagoController::class, 'reembolsar'])->whereNumber('id'); // Reembolsar pago (solo anunciantes)
     });
 
-    Route::prefix('password')->group(function () {
-    Route::post('/forgot', [PasswordResetController::class, 'sendResetCode']);
-    Route::post('/reset', [PasswordResetController::class, 'verifyCode']);
-    Route::post('/check-status', [PasswordResetController::class, 'checkCodeStatus']);
-    });
+    
 
     
 
