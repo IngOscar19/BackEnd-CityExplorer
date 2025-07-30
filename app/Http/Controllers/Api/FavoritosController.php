@@ -12,13 +12,31 @@ use App\Http\Controllers\Controller;
 class FavoritosController extends Controller
 {
     /**
+     * Obtener el ID del usuario autenticado de manera segura
+     */
+    private function getUserId()
+    {
+        $usuario = Auth::user();
+        return $usuario ? $usuario->id_usuario : null;
+    }
+
+    /**
      * Mostrar todos los favoritos del usuario autenticado
      */
     public function index()
     {
         try {
+            $userId = $this->getUserId();
+            
+            if (!$userId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuario no autenticado'
+                ], 401);
+            }
+
             $favoritos = Favoritos::with(['lugar', 'usuario'])
-                ->where('id_usuario', Auth::id())
+                ->where('id_usuario', $userId)
                 ->orderBy('fecha_agregado', 'desc')
                 ->get();
 
@@ -45,8 +63,17 @@ class FavoritosController extends Controller
         ]);
 
         try {
+            $userId = $this->getUserId();
+            
+            if (!$userId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuario no autenticado'
+                ], 401);
+            }
+
             // Verificar si ya existe en favoritos
-            $existeFavorito = Favoritos::where('id_usuario', Auth::id())
+            $existeFavorito = Favoritos::where('id_usuario', $userId)
                 ->where('id_lugar', $request->id_lugar)
                 ->first();
 
@@ -58,7 +85,7 @@ class FavoritosController extends Controller
             }
 
             $favorito = Favoritos::create([
-                'id_usuario' => Auth::id(),
+                'id_usuario' => $userId,
                 'id_lugar' => $request->id_lugar
             ]);
 
@@ -91,7 +118,16 @@ class FavoritosController extends Controller
     public function destroy($id_lugar)
     {
         try {
-            $favorito = Favoritos::where('id_usuario', Auth::id())
+            $userId = $this->getUserId();
+            
+            if (!$userId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuario no autenticado'
+                ], 401);
+            }
+
+            $favorito = Favoritos::where('id_usuario', $userId)
                 ->where('id_lugar', $id_lugar)
                 ->first();
 
@@ -124,7 +160,16 @@ class FavoritosController extends Controller
     public function check($id_lugar)
     {
         try {
-            $esFavorito = Favoritos::where('id_usuario', Auth::id())
+            $userId = $this->getUserId();
+            
+            if (!$userId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuario no autenticado'
+                ], 401);
+            }
+
+            $esFavorito = Favoritos::where('id_usuario', $userId)
                 ->where('id_lugar', $id_lugar)
                 ->exists();
 
@@ -142,51 +187,60 @@ class FavoritosController extends Controller
         }
     }
 
+    /**
+     * Toggle favorito (agregar si no existe, eliminar si existe)
+     */
     public function toggle(Request $request)
- {
-    $request->validate([
-        'id_lugar' => 'required|integer|exists:Lugar,id_lugar'
-    ]);
+    {
+        $request->validate([
+            'id_lugar' => 'required|integer|exists:Lugar,id_lugar'
+        ]);
 
-    try {
-        $usuario = Auth::user(); // Obtener el usuario completo
-        $userId = $usuario->id_usuario; // Obtener el ID específicamente
+        try {
+            $userId = $this->getUserId();
+            
+            if (!$userId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuario no autenticado'
+                ], 401);
+            }
 
-        $favorito = Favoritos::where('id_usuario', $userId)
-            ->where('id_lugar', $request->id_lugar)
-            ->first();
+            $favorito = Favoritos::where('id_usuario', $userId)
+                ->where('id_lugar', $request->id_lugar)
+                ->first();
 
-        if ($favorito) {
-            // Si existe, lo eliminamos
-            $favorito->delete();
+            if ($favorito) {
+                // Si existe, lo eliminamos
+                $favorito->delete();
+                return response()->json([
+                    'success' => true,
+                    'action' => 'removed',
+                    'message' => 'Lugar eliminado de favoritos'
+                ], 200);
+            } else {
+                // Si no existe, lo agregamos
+                $nuevoFavorito = Favoritos::create([
+                    'id_usuario' => $userId,
+                    'id_lugar' => $request->id_lugar
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'action' => 'added',
+                    'message' => 'Lugar agregado a favoritos',
+                    'data' => $nuevoFavorito->load(['lugar', 'usuario'])
+                ], 201);
+            }
+
+        } catch (\Exception $e) {
             return response()->json([
-                'success' => true,
-                'action' => 'removed',
-                'message' => 'Lugar eliminado de favoritos'
-            ], 200);
-        } else {
-            // Si no existe, lo agregamos
-            $nuevoFavorito = Favoritos::create([
-                'id_usuario' => $userId, // Usar la variable específica
-                'id_lugar' => $request->id_lugar
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'action' => 'added',
-                'message' => 'Lugar agregado a favoritos',
-                'data' => $nuevoFavorito->load(['lugar', 'usuario'])
-            ], 201);
+                'success' => false,
+                'message' => 'Error al procesar favorito',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Error al procesar favorito',
-            'error' => $e->getMessage()
-        ], 500);
     }
- }
 
     /**
      * Obtener estadísticas de favoritos del usuario
@@ -194,9 +248,18 @@ class FavoritosController extends Controller
     public function stats()
     {
         try {
-            $totalFavoritos = Favoritos::where('id_usuario', Auth::id())->count();
+            $userId = $this->getUserId();
             
-            $favoritosPorMes = Favoritos::where('id_usuario', Auth::id())
+            if (!$userId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuario no autenticado'
+                ], 401);
+            }
+
+            $totalFavoritos = Favoritos::where('id_usuario', $userId)->count();
+            
+            $favoritosPorMes = Favoritos::where('id_usuario', $userId)
                 ->selectRaw('MONTH(fecha_agregado) as mes, COUNT(*) as total')
                 ->groupBy('mes')
                 ->orderBy('mes')
