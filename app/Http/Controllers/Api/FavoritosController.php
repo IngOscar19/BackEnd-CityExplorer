@@ -142,51 +142,51 @@ class FavoritosController extends Controller
         }
     }
 
-    /**
-     * Toggle favorito (agregar si no existe, eliminar si existe)
-     */
     public function toggle(Request $request)
-    {
-        $request->validate([
-            'id_lugar' => 'required|integer|exists:Lugar,id_lugar'
-        ]);
+ {
+    $request->validate([
+        'id_lugar' => 'required|integer|exists:Lugar,id_lugar'
+    ]);
 
-        try {
-            $favorito = Favoritos::where('id_usuario', Auth::id())
-                ->where('id_lugar', $request->id_lugar)
-                ->first();
+    try {
+        $usuario = Auth::user(); // Obtener el usuario completo
+        $userId = $usuario->id_usuario; // Obtener el ID específicamente
 
-            if ($favorito) {
-                // Si existe, lo eliminamos
-                $favorito->delete();
-                return response()->json([
-                    'success' => true,
-                    'action' => 'removed',
-                    'message' => 'Lugar eliminado de favoritos'
-                ], 200);
-            } else {
-                // Si no existe, lo agregamos
-                $nuevoFavorito = Favoritos::create([
-                    'id_usuario' => Auth::id(),
-                    'id_lugar' => $request->id_lugar
-                ]);
+        $favorito = Favoritos::where('id_usuario', $userId)
+            ->where('id_lugar', $request->id_lugar)
+            ->first();
 
-                return response()->json([
-                    'success' => true,
-                    'action' => 'added',
-                    'message' => 'Lugar agregado a favoritos',
-                    'data' => $nuevoFavorito->load(['lugar', 'usuario'])
-                ], 201);
-            }
-
-        } catch (\Exception $e) {
+        if ($favorito) {
+            // Si existe, lo eliminamos
+            $favorito->delete();
             return response()->json([
-                'success' => false,
-                'message' => 'Error al procesar favorito',
-                'error' => $e->getMessage()
-            ], 500);
+                'success' => true,
+                'action' => 'removed',
+                'message' => 'Lugar eliminado de favoritos'
+            ], 200);
+        } else {
+            // Si no existe, lo agregamos
+            $nuevoFavorito = Favoritos::create([
+                'id_usuario' => $userId, // Usar la variable específica
+                'id_lugar' => $request->id_lugar
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'action' => 'added',
+                'message' => 'Lugar agregado a favoritos',
+                'data' => $nuevoFavorito->load(['lugar', 'usuario'])
+            ], 201);
         }
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al procesar favorito',
+            'error' => $e->getMessage()
+        ], 500);
     }
+ }
 
     /**
      * Obtener estadísticas de favoritos del usuario

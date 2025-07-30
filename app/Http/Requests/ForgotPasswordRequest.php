@@ -13,7 +13,7 @@ class ForgotPasswordRequest extends FormRequest
     public function rules()
     {
         return [
-            'correo' => 'required|email|exists:Usuario,correo' // Cambiar tabla y campo
+            'correo' => 'required|email|exists:Usuario,correo' 
         ];
     }
 
