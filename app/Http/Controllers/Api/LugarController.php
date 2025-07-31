@@ -176,38 +176,40 @@ class LugarController extends Controller
     }
 
     // Eliminar lugar
-    public function destroy($id)
-    {
-        $lugar = Lugar::with('imagenes')->find($id);
+   public function destroy($id)
+ {
+    $usuario = Auth::user(); // Obtener el usuario completo
+    $lugar = Lugar::with('imagenes')->find($id);
 
-        if (!$lugar) {
-            return response()->json(['mensaje' => 'Lugar no encontrado'], 404);
-        }
-
-        if ($lugar->id_usuario !== Auth::id()) {
-            return response()->json(['mensaje' => 'No autorizado. Solo el creador puede eliminar este lugar.'], 403);
-        }
-
-        DB::beginTransaction();
-
-        try {
-            // Eliminar imágenes físicas
-            foreach ($lugar->imagenes as $imagen) {
-                Storage::disk('public')->delete($imagen->url);
-            }
-
-            // Eliminar el lugar (las imágenes se borrarán en cascada por la relación)
-            $lugar->delete();
-
-            DB::commit();
-
-            return response()->json(['mensaje' => 'Lugar eliminado correctamente.']);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(['error' => 'Error al eliminar lugar: ' . $e->getMessage()], 500);
-        }
+    if (!$lugar) {
+        return response()->json(['mensaje' => 'Lugar no encontrado'], 404);
     }
+
+    // Usar el mismo patrón que en el método update
+    if ($lugar->id_usuario !== $usuario->id_usuario) {
+        return response()->json(['mensaje' => 'No autorizado. Solo el creador puede eliminar este lugar.'], 403);
+    }
+
+    DB::beginTransaction();
+
+    try {
+        // Eliminar imágenes físicas
+        foreach ($lugar->imagenes as $imagen) {
+            Storage::disk('public')->delete($imagen->url);
+        }
+
+        // Eliminar el lugar (las imágenes se borrarán en cascada por la relación)
+        $lugar->delete();
+
+        DB::commit();
+
+        return response()->json(['mensaje' => 'Lugar eliminado correctamente.']);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json(['error' => 'Error al eliminar lugar: ' . $e->getMessage()], 500);
+    }
+ }
 
     // Métodos auxiliares protegidos
 
