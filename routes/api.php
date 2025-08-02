@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Models\Imagenes;
 use App\Http\Controllers\Api\PasswordResetController;
+use App\Http\Controllers\Api\AdminController;
 
 // Ruta de prueba
 Route::post('hola', function() {
@@ -89,12 +90,38 @@ Route::middleware(['auth:sanctum'])->group(function() {
    // Rutas para UsuarioController
    Route::prefix('usuario')->group(function() {
        Route::get('', [UsuarioController::class, 'index']);
-       Route::post('', [UsuarioController::class, 'create']);
        Route::get('/{id}', [UsuarioController::class, 'show'])->whereNumber('id');
-       Route::patch('/{id}', [UsuarioController::class, 'update'])->whereNumber('id');
        Route::delete('/{id}', [UsuarioController::class, 'destroy'])->whereNumber('id');
        Route::post('/{id}/update', [UsuarioController::class, 'update'])->whereNumber('id');
    });
+
+   // === GESTIÓN DE USUARIOS ===
+   // Route::get('/usuarios', [UsuarioController::class, 'index']);
+    Route::get('/usuarios/{id}', [UsuarioController::class, 'show']);
+    Route::put('/usuarios/{id}', [UsuarioController::class, 'update']);
+    Route::delete('/usuarios/{id}', [UsuarioController::class, 'destroy']);
+    
+    // Perfil y utilidades
+    Route::get('/perfil', [UsuarioController::class, 'perfil']);
+    Route::post('/logout', [UsuarioController::class, 'logout']);
+    
+    // === ADMINISTRACIÓN (solo admins) ===
+    Route::prefix('admin')->group(function () {
+        Route::get('/usuarios', [AdminController::class, 'index']);
+        Route::get('/usuarios/{id}', [AdminController::class, 'show']);
+        Route::put('/usuarios/{id}', [AdminController::class, 'update']);
+        
+        // Gestión de estados
+        Route::post('/usuarios/{id}/bloquear', [AdminController::class, 'bloquearUsuario']);
+        Route::post('/usuarios/{id}/desbloquear', [AdminController::class, 'desbloquearUsuario']);
+        Route::post('/usuarios/{id}/toggle', [AdminController::class, 'toggleEstadoUsuario']);
+        
+       
+        Route::get('/usuarios/{id}/historial', [AdminController::class, 'historial']);
+        
+        // Estadísticas
+        Route::get('/estadisticas', [AdminController::class, 'estadisticas']);
+    });
 
    // Rutas para RolController
    Route::prefix('rol')->group(function() {
@@ -190,11 +217,9 @@ Route::middleware(['auth:sanctum'])->group(function() {
     });
 
     
-
-    
-
-   
 });
+
+
 
 // Obtener la autenticación del usuario
 Route::get('/user', function (Request $request) {

@@ -108,27 +108,7 @@ CREATE TABLE Pago (
     FOREIGN KEY ( id_metodo_pago) REFERENCES Metodo_Pago( id_metodo_pago) ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
--- Tabla Lista
-CREATE TABLE Lista (
-    id_lista INT PRIMARY KEY AUTO_INCREMENT,
-    nombre VARCHAR(100) NOT NULL,
-    descripcion TEXT,
-    id_usuario INT NOT NULL,
-    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    activo BOOLEAN DEFAULT TRUE,
-    FOREIGN KEY (id_usuario) REFERENCES Usuario(id_usuario) ON DELETE CASCADE ON UPDATE CASCADE
-);
 
--- Tabla Lista_Lugar
-CREATE TABLE Lista_Lugar (
-    id_lista_lugar INT PRIMARY KEY AUTO_INCREMENT,
-    id_lista INT NOT NULL,
-    id_lugar INT NOT NULL,
-    fecha_agregado TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id_lista) REFERENCES Lista(id_lista) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (id_lugar) REFERENCES Lugar(id_lugar) ON DELETE CASCADE ON UPDATE CASCADE,
-    UNIQUE (id_lista, id_lugar)
-);
     
     
 -- Inserción de Roles Corregida
@@ -159,3 +139,31 @@ INSERT INTO Categoria_Lugar (id_categoria, nombre, descripcion, icono) VALUES
 -- Inserción de Métodos de Pago
 INSERT INTO Metodo_Pago (nombre) VALUES ('Tarjeta de Debito');
 INSERT INTO Metodo_Pago (nombre) VALUES ('Tarjeta de Credito');
+
+
+-- Agregar columnas si no existen previamente
+ALTER TABLE Usuario
+ADD COLUMN fecha_bloqueo TIMESTAMP NULL,
+ADD COLUMN motivo_bloqueo TEXT NULL,
+ADD COLUMN bloqueado_por INT NULL,
+ADD COLUMN fecha_desbloqueo TIMESTAMP NULL,
+ADD COLUMN desbloqueado_por INT NULL,
+ADD COLUMN last_login TIMESTAMP NULL,
+ADD COLUMN remember_token VARCHAR(100) NULL,
+ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+ADD COLUMN bloqueado BOOLEAN DEFAULT FALSE;
+
+-- Agregar las claves foráneas
+ALTER TABLE Usuario
+ADD CONSTRAINT fk_usuarios_bloqueado_por 
+FOREIGN KEY (bloqueado_por) REFERENCES Usuario(id_usuario);
+
+ALTER TABLE Usuario
+ADD CONSTRAINT fk_usuarios_desbloqueado_por 
+FOREIGN KEY (desbloqueado_por) REFERENCES Usuario(id_usuario);
+
+-- Agregar los índices (asumiendo que id_rol y activo ya existen en la tabla)
+ALTER TABLE Usuario
+ADD INDEX idx_usuarios_rol (id_rol),
+ADD INDEX idx_usuarios_activo (activo);
