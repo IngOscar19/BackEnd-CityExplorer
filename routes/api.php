@@ -115,6 +115,7 @@ Route::middleware(['auth:sanctum'])->group(function() {
         Route::post('/usuarios/{id}/bloquear', [AdminController::class, 'bloquearUsuario']);
         Route::post('/usuarios/{id}/desbloquear', [AdminController::class, 'desbloquearUsuario']);
         Route::post('/usuarios/{id}/toggle', [AdminController::class, 'toggleEstadoUsuario']);
+        Route::get('/lugares', [AdminController::class, 'lugares']);
         
        
         Route::get('/usuarios/{id}/historial', [AdminController::class, 'historial']);

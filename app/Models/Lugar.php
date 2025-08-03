@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\CategoriaLugar;
 
 class Lugar extends Model
 {
@@ -37,7 +38,7 @@ class Lugar extends Model
     // Relaciones
     public function categoria()
     {
-        return $this->belongsTo(Categoria::class, 'id_categoria');
+        return $this->belongsTo(CategoriaLugar::class, 'id_categoria');
     }
 
     public function usuario()

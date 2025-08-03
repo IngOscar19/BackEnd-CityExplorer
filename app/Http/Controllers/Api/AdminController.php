@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Usuario;
+use App\Models\Lugar;
+use App\Models\CategoriaLugar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -50,10 +52,213 @@ class AdminController extends Controller
             });
         }
 
-        $usuarios = $query->orderBy('created_at', 'desc')->paginate(15);
+        $usuarios = $query->orderBy('id_usuario', 'desc')->paginate(15);
 
         return response()->json($usuarios);
     }
+
+/**
+     * Listar todos los lugares (solo administradores)
+     */
+    public function lugares(Request $request)
+    {
+        $usuario = Auth::user()->load('rol');
+
+        if (!$this->esAdministrador($usuario)) {
+            return response()->json(['mensaje' => 'No autorizado. Solo los administradores pueden acceder a esta función.'], 403);
+        }
+
+        $query = Lugar::with(['usuario', 'categoria', 'direccion']);
+
+        // Filtros opcionales
+        if ($request->has('activo')) {
+            $query->where('activo', $request->boolean('activo'));
+        }
+
+        if ($request->has('categoria')) {
+            $query->whereHas('categoria', function($q) use ($request) {
+                $q->where('nombre', 'like', '%' . $request->categoria . '%');
+            });
+        }
+
+        if ($request->has('usuario')) {
+            $query->whereHas('usuario', function($q) use ($request) {
+                $q->where('nombre', 'like', '%' . $request->usuario . '%')
+                  ->orWhere('correo', 'like', '%' . $request->usuario . '%');
+            });
+        }
+
+        if ($request->has('buscar')) {
+            $buscar = $request->buscar;
+            $query->where(function($q) use ($buscar) {
+                $q->where('nombre', 'like', '%' . $buscar . '%')
+                  ->orWhere('descripcion', 'like', '%' . $buscar . '%')
+                  ->orWhere('num_telefonico', 'like', '%' . $buscar . '%')
+                  ->orWhereHas('usuario', function($subq) use ($buscar) {
+                      $subq->where('nombre', 'like', '%' . $buscar . '%')
+                           ->orWhere('correo', 'like', '%' . $buscar . '%');
+                  });
+            });
+        }
+
+        // Filtro por días de servicio
+        if ($request->has('dia_servicio')) {
+            $query->whereJsonContains('dias_servicio', $request->dia_servicio);
+        }
+
+        // Filtro por horarios
+        if ($request->has('horario_desde')) {
+            $query->where('horario_apertura', '>=', $request->horario_desde);
+        }
+
+        if ($request->has('horario_hasta')) {
+            $query->where('horario_cierre', '<=', $request->horario_hasta);
+        }
+
+        $lugares = $query->orderBy('id_lugar', 'desc')->paginate(20);
+
+        return response()->json($lugares);
+    }
+
+
+/**
+     * Ver detalles de un lugar específico
+     */
+    public function mostrarLugar($id)
+    {
+        $usuario = Auth::user()->load('rol');
+
+        if (!$this->esAdministrador($usuario)) {
+            return response()->json(['mensaje' => 'No autorizado.'], 403);
+        }
+
+        $lugar = Lugar::with(['usuario.rol', 'categoria', 'direccion', 'imagenes'])->find($id);
+
+        if (!$lugar) {
+            return response()->json(['mensaje' => 'Lugar no encontrado.'], 404);
+        }
+
+        // Agregar información adicional del lugar
+        $lugar->informacion_adicional = [
+            'estado_texto' => $this->obtenerEstadoLugar($lugar),
+            'dias_servicio_texto' => is_array($lugar->dias_servicio) 
+                ? implode(', ', $lugar->dias_servicio) 
+                : $lugar->dias_servicio,
+            'horario_completo' => $lugar->horario_apertura && $lugar->horario_cierre 
+                ? $lugar->horario_apertura . ' - ' . $lugar->horario_cierre 
+                : 'No definido',
+            'total_imagenes' => $lugar->imagenes->count(),
+            'propietario' => $lugar->usuario->nombre . ' ' . $lugar->usuario->apellidoP,
+            'categoria_nombre' => $lugar->categoria->nombre ?? 'Sin categoría'
+        ];
+
+        return response()->json($lugar);
+    }
+
+    
+
+    /**
+     * Obtener estadísticas de lugares
+     */
+    public function estadisticasLugares()
+    {
+        $usuario = Auth::user()->load('rol');
+
+        if (!$this->esAdministrador($usuario)) {
+            return response()->json(['mensaje' => 'No autorizado.'], 403);
+        }
+
+        try {
+            $estadisticas = [
+                'total_lugares' => Lugar::count(),
+                'lugares_activos' => Lugar::where('activo', true)->count(),
+                'lugares_inactivos' => Lugar::where('activo', false)->count(),
+                'lugares_por_categoria' => Lugar::select('CategoriaLugar.nombre as categoria', DB::raw('count(*) as total'))
+                    ->join('CategoriaLugar', 'Lugar.id_categoria', '=', 'CategoriaLugar.id_categoria')
+                    ->groupBy('CategoriaLugar.nombre', 'CategoriaLugar.id_categoria')
+                    ->get(),
+                'lugares_con_telefono' => Lugar::whereNotNull('num_telefonico')
+                    ->where('num_telefonico', '!=', '')
+                    ->count(),
+                'lugares_con_web' => Lugar::whereNotNull('paginaWeb')
+                    ->where('paginaWeb', '!=', '')
+                    ->count(),
+                'lugares_con_horario' => Lugar::whereNotNull('horario_apertura')
+                    ->whereNotNull('horario_cierre')
+                    ->count(),
+                'lugares_con_imagenes' => Lugar::whereHas('imagenes')->count(),
+                'promedio_imagenes_por_lugar' => round(
+                    Lugar::withCount('imagenes')->get()->avg('imagenes_count'), 2
+                )
+            ];
+
+            return response()->json($estadisticas);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error al generar estadísticas: ' . $e->getMessage()], 500);
+        }
+    }
+
+
+    /**
+     * Obtener lugares por categoría
+     */
+    public function lugaresPorCategoria(Request $request)
+    {
+        $usuario = Auth::user()->load('rol');
+
+        if (!$this->esAdministrador($usuario)) {
+            return response()->json(['mensaje' => 'No autorizado.'], 403);
+        }
+
+        $query = Lugar::with(['usuario', 'categoria', 'direccion']);
+
+        if ($request->has('categoria_id')) {
+            $query->where('id_categoria', $request->categoria_id);
+        }
+
+        if ($request->has('activo')) {
+            $query->where('activo', $request->boolean('activo'));
+        }
+
+        $lugares = $query->orderBy('nombre', 'asc')->paginate(15);
+
+        // Agregar información de la categoría
+        $categoria = null;
+        if ($request->has('categoria_id')) {
+            $categoria = CategoriaLugar::find($request->categoria_id); // Cambiado a CategoriaLugar
+        }
+
+        return response()->json([
+            'lugares' => $lugares,
+            'categoria' => $categoria
+        ]);
+    }
+
+/**
+     * Obtener lugares sin imágenes
+     */
+    public function lugaresSinImagenes(Request $request)
+    {
+        $usuario = Auth::user()->load('rol');
+
+        if (!$this->esAdministrador($usuario)) {
+            return response()->json(['mensaje' => 'No autorizado.'], 403);
+        }
+
+        $query = Lugar::with(['usuario', 'categoria'])
+                     ->doesntHave('imagenes');
+
+        if ($request->has('activo')) {
+            $query->where('activo', $request->boolean('activo'));
+        }
+
+        $lugaresSinImagenes = $query->orderBy('id_lugar', 'desc')->paginate(15);
+
+        return response()->json($lugaresSinImagenes);
+    }
+
+
+    // Métodos existentes del controlador original para usuarios...
 
     /**
      * Bloquear un usuario (cambiar bloqueado a true)
@@ -281,15 +486,18 @@ class AdminController extends Controller
                     ->join('Rol', 'Usuario.id_rol', '=', 'Rol.id_rol')
                     ->groupBy('Rol.nombre', 'Rol.id_rol')
                     ->get(),
-                'registros_recientes' => Usuario::where('created_at', '>=', now()->subDays(30))->count(),
-                'registros_ultimo_mes' => Usuario::where('created_at', '>=', now()->subMonth())->count(),
+                'registros_recientes' => Usuario::whereRaw('DATE(created_at) >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)')->count(),
+                'registros_ultimo_mes' => Usuario::whereRaw('DATE(created_at) >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)')->count(),
             ];
 
-            // Agregar estadísticas de lugares si existe la relación
+            // Agregar estadísticas de lugares
             try {
                 $estadisticas['usuarios_con_lugares'] = Usuario::whereHas('lugares')->count();
+                $estadisticas['promedio_lugares_por_usuario'] = round(
+                    Usuario::withCount('lugares')->get()->avg('lugares_count'), 2
+                );
             } catch (\Exception $e) {
-                // Si no existe la relación, no agregar esta estadística
+                // Si no existe la relación, no agregar estas estadísticas
             }
 
             return response()->json($estadisticas);
@@ -315,10 +523,11 @@ class AdminController extends Controller
             return response()->json(['mensaje' => 'Usuario no encontrado.'], 404);
         }
 
-        // Solo cargar lugares si la relación existe
+        // Cargar lugares del usuario
         try {
             $usuarioDetalle->load(['lugares' => function($query) {
-                $query->select('id_lugar', 'nombre', 'activo', 'id_usuario', 'created_at');
+                $query->select('id_lugar', 'nombre', 'activo', 'id_usuario')
+                      ->with('categoria:id_categoria,nombre');
             }]);
             
             $lugaresCount = $usuarioDetalle->lugares->count();
@@ -332,6 +541,7 @@ class AdminController extends Controller
         $usuarioDetalle->estadisticas = [
             'lugares_creados' => $lugaresCount,
             'lugares_activos' => $lugaresActivos,
+            'lugares_inactivos' => $lugaresCount - $lugaresActivos,
             'ultimo_login' => $usuarioDetalle->last_login ?? 'Nunca',
             'fecha_registro' => $usuarioDetalle->created_at,
             'estado_activo' => $usuarioDetalle->activo ? 'Activo' : 'Inactivo',
@@ -341,74 +551,7 @@ class AdminController extends Controller
         return response()->json($usuarioDetalle);
     }
 
-    /**
-     * Actualizar información básica de un usuario
-     */
-    public function update(Request $request, $id)
-    {
-        $usuario = Auth::user()->load('rol');
-
-        if (!$this->esAdministrador($usuario)) {
-            return response()->json(['mensaje' => 'No autorizado.'], 403);
-        }
-
-        $usuarioAActualizar = Usuario::find($id);
-
-        if (!$usuarioAActualizar) {
-            return response()->json(['mensaje' => 'Usuario no encontrado.'], 404);
-        }
-
-        // Evitar que se modifique a sí mismo
-        if ($usuarioAActualizar->id_usuario === $usuario->id_usuario) {
-            return response()->json(['mensaje' => 'No puedes modificar tu propia cuenta desde esta función.'], 422);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'nombre' => 'sometimes|string|max:255',
-            'apellidoP' => 'sometimes|string|max:255',
-            'apellidoM' => 'sometimes|string|max:255|nullable',
-            'correo' => 'sometimes|email|unique:Usuario,correo,' . $id . ',id_usuario',
-            'id_rol' => 'sometimes|exists:Rol,id_rol',
-            'activo' => 'sometimes|boolean',
-            'bloqueado' => 'sometimes|boolean'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 422);
-        }
-
-        DB::beginTransaction();
-
-        try {
-            // Solo actualizar campos permitidos
-            $camposPermitidos = ['nombre', 'apellidoP', 'apellidoM', 'correo', 'id_rol', 'activo', 'bloqueado'];
-            $datosActualizar = $request->only($camposPermitidos);
-
-            $usuarioAActualizar->update($datosActualizar);
-
-            DB::commit();
-
-            return response()->json([
-                'mensaje' => 'Usuario actualizado correctamente.',
-                'usuario' => $usuarioAActualizar->fresh()->load('rol')
-            ]);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(['error' => 'Error al actualizar usuario: ' . $e->getMessage()], 500);
-        }
-    }
-
-    /**
-     * Método auxiliar para verificar si un usuario es administrador
-     */
-    protected function esAdministrador($usuario)
-    {
-        return $usuario && 
-               $usuario->rol && 
-               (strcasecmp($usuario->rol->nombre, 'administrador') === 0 || 
-                strcasecmp($usuario->rol->nombre, 'Administrador') === 0);
-    }
+    
 
     /**
      * Obtener historial de acciones de un usuario
@@ -458,10 +601,38 @@ class AdminController extends Controller
         return response()->json($historial);
     }
 
+    
+
     /**
-     * Cambiar rol de un usuario
+     * Método auxiliar para verificar si un usuario es administrador
      */
-    public function cambiarRol(Request $request, $id)
+    protected function esAdministrador($usuario)
+    {
+        return $usuario && 
+               $usuario->rol && 
+               (strcasecmp($usuario->rol->nombre, 'administrador') === 0 || 
+                strcasecmp($usuario->rol->nombre, 'Administrador') === 0);
+    }
+
+    /**
+     * Método auxiliar para obtener el estado legible de un lugar
+     */
+    protected function obtenerEstadoLugar($lugar)
+    {
+        if (!$lugar->activo) {
+            return 'Inactivo';
+        }
+        
+        return 'Activo';
+    }
+
+
+
+
+    /**
+     * Obtener dashboard completo con estadísticas generales
+     */
+    public function dashboard()
     {
         $usuario = Auth::user()->load('rol');
 
@@ -469,40 +640,34 @@ class AdminController extends Controller
             return response()->json(['mensaje' => 'No autorizado.'], 403);
         }
 
-        $usuarioACambiar = Usuario::with('rol')->find($id);
-
-        if (!$usuarioACambiar) {
-            return response()->json(['mensaje' => 'Usuario no encontrado.'], 404);
-        }
-
-        // Evitar cambiar su propio rol
-        if ($usuarioACambiar->id_usuario === $usuario->id_usuario) {
-            return response()->json(['mensaje' => 'No puedes cambiar tu propio rol.'], 422);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'id_rol' => 'required|exists:Rol,id_rol'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 422);
-        }
-
-        DB::beginTransaction();
-
         try {
-            $usuarioACambiar->update(['id_rol' => $request->id_rol]);
+            $dashboard = [
+                'usuarios' => [
+                    'total' => Usuario::count(),
+                    'activos' => Usuario::where('activo', true)->count(),
+                    'bloqueados' => Usuario::where('bloqueado', true)->count(),
+                    'nuevos_mes' => Usuario::whereRaw('DATE(created_at) >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)')->count()
+                ],
+                'lugares' => [
+                    'total' => Lugar::count(),
+                    'activos' => Lugar::where('activo', true)->count(),
+                    'inactivos' => Lugar::where('activo', false)->count(),
+                    'con_imagenes' => Lugar::whereHas('imagenes')->count()
+                ],
+                'categorias_populares' => Lugar::select('CategoriaLugar.nombre as categoria', DB::raw('count(*) as total'))
+                    ->join('CategoriaLugar', 'Lugar.id_categoria', '=', 'CategoriaLugar.id_categoria')
+                    ->groupBy('CategoriaLugar.nombre', 'CategoriaLugar.id_categoria')
+                    ->orderBy('total', 'desc')
+                    ->limit(5)
+                    ->get(),
+                'actividad_reciente' => [
+                    'usuarios_nuevos' => Usuario::whereRaw('DATE(created_at) >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)')->count(),
+                ]
+            ];
 
-            DB::commit();
-
-            return response()->json([
-                'mensaje' => 'Rol actualizado correctamente.',
-                'usuario' => $usuarioACambiar->fresh()->load('rol')
-            ]);
-
+            return response()->json($dashboard);
         } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(['error' => 'Error al cambiar rol: ' . $e->getMessage()], 500);
+            return response()->json(['error' => 'Error al generar dashboard: ' . $e->getMessage()], 500);
         }
     }
 }
