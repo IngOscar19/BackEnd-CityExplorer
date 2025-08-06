@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\FavoritosController;
 use App\Http\Controllers\Api\PagoController;
 use App\Http\Controllers\Api\ListaController;
 use App\Http\Controllers\Api\ListaLugarController;
+use App\Http\Controllers\Api\EstadisticasVisitasController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Models\Imagenes;
@@ -44,6 +45,7 @@ Route::get('categorias', [CategoriaLugarController::class, 'index']); // Obtener
 
 Route::get('imagenes/{id}', [LugarController::class, 'getImagenes'])
     ->whereNumber('id'); // Obtener imágenes de un lugar específico
+
 // Rutas para Categoria (nueva)
 Route::prefix('categoria')->group(function() {
      
@@ -56,6 +58,13 @@ Route::prefix('direccion')->group(function() {
     Route::get('', [DireccionController::class, 'index']);  // Obtener todas las direcciones
     Route::get('/{id}', [DireccionController::class, 'show'])  // Obtener una dirección específica
         ->whereNumber('id');
+});
+
+// 🔓 Rutas públicas para estadísticas de visitas
+Route::prefix('estadisticas-visitas')->group(function() {
+    Route::post('/', [EstadisticasVisitasController::class, 'registrarVisita']); // Registrar visita
+    Route::get('/lugar/{id}', [EstadisticasVisitasController::class, 'obtenerEstadisticasLugar'])->whereNumber('id'); // Estadísticas de lugar
+    Route::get('/lugares-populares', [EstadisticasVisitasController::class, 'obtenerLugaresMasVisitados']); // Lugares más visitados
 });
 
 
@@ -124,6 +133,18 @@ Route::middleware(['auth:sanctum'])->group(function() {
         
         // Estadísticas
         Route::get('/estadisticas', [AdminController::class, 'estadisticas']);
+        
+        // 🔐 Rutas de administración para estadísticas de visitas
+        Route::prefix('estadisticas-visitas')->group(function() {
+            Route::get('/resumen', [EstadisticasVisitasController::class, 'obtenerResumenGeneral']); // Resumen general del sistema
+            Route::delete('/limpiar', [EstadisticasVisitasController::class, 'limpiarEstadisticasAntiguas']); // Limpiar estadísticas antiguas
+        });
+    });
+
+    // 🔐 Rutas protegidas para estadísticas de visitas de usuario
+    Route::prefix('estadisticas-visitas')->group(function() {
+        Route::get('/usuario/{id}', [EstadisticasVisitasController::class, 'obtenerEstadisticasUsuario'])->whereNumber('id'); // Estadísticas de usuario específico
+        Route::get('/mis-estadisticas', [EstadisticasVisitasController::class, 'obtenerEstadisticasUsuario']); // Mis estadísticas (usuario autenticado)
     });
 
    // Rutas para RolController
