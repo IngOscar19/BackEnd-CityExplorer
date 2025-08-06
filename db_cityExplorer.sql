@@ -140,6 +140,17 @@ INSERT INTO Categoria_Lugar (id_categoria, nombre, descripcion, icono) VALUES
 INSERT INTO Metodo_Pago (nombre) VALUES ('Tarjeta de Debito');
 INSERT INTO Metodo_Pago (nombre) VALUES ('Tarjeta de Credito');
 
+CREATE TABLE estadisticas_visitas (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  id_lugar INT NOT NULL,
+  id_usuario INT DEFAULT NULL,
+  tiempo_visita INT NOT NULL,
+  fecha DATETIME NOT NULL,
+  fecha_dia DATE NOT NULL,
+  FOREIGN KEY (id_lugar) REFERENCES Lugar(id_lugar) ON DELETE CASCADE,
+  FOREIGN KEY (id_usuario) REFERENCES Usuario(id_usuario) ON DELETE SET NULL
+);
+
 
 -- Agregar columnas si no existen previamente
 ALTER TABLE Usuario

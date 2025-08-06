@@ -58,7 +58,7 @@ class AdminController extends Controller
     }
 
     /**
-     * Listar todos los lugares (solo administradores)
+     * Listar todos los lugares (solo administradores) - Incluye lugares eliminados
      */
     public function lugares(Request $request)
     {
@@ -68,11 +68,34 @@ class AdminController extends Controller
             return response()->json(['mensaje' => 'No autorizado. Solo los administradores pueden acceder a esta función.'], 403);
         }
 
+        // Por defecto mostrar todos los lugares (incluidos los eliminados)
         $query = Lugar::with(['usuario', 'categoria', 'direccion']);
 
         // Filtros opcionales
         if ($request->has('activo')) {
             $query->where('activo', $request->boolean('activo'));
+        }
+
+        if ($request->has('bloqueado')) {
+            $query->where('bloqueado', $request->boolean('bloqueado'));
+        }
+
+        // Filtro de estado combinado (más útil para admins)
+        if ($request->has('estado')) {
+            switch (strtolower($request->estado)) {
+                case 'disponible':
+                    $query->where('activo', true)->where('bloqueado', false);
+                    break;
+                case 'bloqueado':
+                    $query->where('activo', true)->where('bloqueado', true);
+                    break;
+                case 'eliminado':
+                    $query->where('activo', false);
+                    break;
+                case 'todos':
+                    // No aplicar ningún filtro de estado
+                    break;
+            }
         }
 
         if ($request->has('categoria')) {
@@ -115,10 +138,84 @@ class AdminController extends Controller
             $query->where('horario_cierre', '<=', $request->horario_hasta);
         }
 
-        $lugares = $query->orderBy('id_lugar', 'desc')->paginate(20);
+        // Filtros específicos para admin
+        if ($request->has('con_imagenes')) {
+            if ($request->boolean('con_imagenes')) {
+                $query->whereHas('imagenes');
+            } else {
+                $query->whereDoesntHave('imagenes');
+            }
+        }
 
-        return response()->json($lugares);
+        if ($request->has('con_telefono')) {
+            if ($request->boolean('con_telefono')) {
+                $query->whereNotNull('num_telefonico')->where('num_telefonico', '!=', '');
+            } else {
+                $query->where(function($q) {
+                    $q->whereNull('num_telefonico')->orWhere('num_telefonico', '');
+                });
+            }
+        }
+
+        if ($request->has('con_web')) {
+            if ($request->boolean('con_web')) {
+                $query->whereNotNull('paginaWeb')->where('paginaWeb', '!=', '');
+            } else {
+                $query->where(function($q) {
+                    $q->whereNull('paginaWeb')->orWhere('paginaWeb', '');
+                });
+            }
+        }
+
+        // Ordenamiento
+        $orderBy = $request->get('order_by', 'id_lugar');
+        $orderDirection = $request->get('order_direction', 'desc');
+        
+        $allowedOrderFields = ['id_lugar', 'nombre', 'activo', 'bloqueado', 'fecha_bloqueo'];
+        if (in_array($orderBy, $allowedOrderFields)) {
+            $query->orderBy($orderBy, $orderDirection);
+        } else {
+            $query->orderBy('id_lugar', 'desc');
+        }
+
+        $lugares = $query->paginate($request->get('per_page', 20));
+
+        // Agregar información adicional a cada lugar
+        $lugares->getCollection()->transform(function ($lugar) {
+            $lugar->estado_texto = $this->obtenerEstadoLugar($lugar);
+            $lugar->dias_servicio_texto = is_array($lugar->dias_servicio) 
+                ? implode(', ', $lugar->dias_servicio) 
+                : ($lugar->dias_servicio ?? 'No especificado');
+            $lugar->horario_texto = ($lugar->horario_apertura && $lugar->horario_cierre) 
+                ? $lugar->horario_apertura->format('H:i') . ' - ' . $lugar->horario_cierre->format('H:i')
+                : 'No especificado';
+            $lugar->total_imagenes = $lugar->imagenes->count();
+            
+            return $lugar;
+        });
+
+        // Agregar resumen de estadísticas en la respuesta
+        $resumen = [
+            'total_lugares' => Lugar::count(),
+            'lugares_disponibles' => Lugar::where('activo', true)->where('bloqueado', false)->count(),
+            'lugares_bloqueados' => Lugar::where('bloqueado', true)->count(),
+            'lugares_eliminados' => Lugar::where('activo', false)->count(),
+        ];
+
+        return response()->json([
+            'lugares' => $lugares,
+            'resumen' => $resumen,
+            'filtros_aplicados' => [
+                'activo' => $request->get('activo'),
+                'bloqueado' => $request->get('bloqueado'),
+                'estado' => $request->get('estado'),
+                'categoria' => $request->get('categoria'),
+                'usuario' => $request->get('usuario'),
+                'buscar' => $request->get('buscar')
+            ]
+        ]);
     }
+    
 
     /**
      * Ver detalles de un lugar específico

@@ -127,6 +127,8 @@ Route::middleware(['auth:sanctum'])->group(function() {
         Route::get('/lugares', [AdminController::class, 'lugares']);
         Route::patch('/lugares/{id}/toggle', [AdminController::class, 'toggleEstadoLugar']); 
         Route::get('/estadisticas/lugares', [AdminController::class, 'estadisticasLugares']);
+        Route::delete('/lugares/{id}', [AdminController::class, 'eliminarLugar']); // Eliminación lógica
+        
         
        
         Route::get('/usuarios/{id}/historial', [AdminController::class, 'historial']);
