@@ -57,7 +57,7 @@ class AdminController extends Controller
         return response()->json($usuarios);
     }
 
-/**
+    /**
      * Listar todos los lugares (solo administradores)
      */
     public function lugares(Request $request)
@@ -120,8 +120,7 @@ class AdminController extends Controller
         return response()->json($lugares);
     }
 
-
-/**
+    /**
      * Ver detalles de un lugar específico
      */
     public function mostrarLugar($id)
@@ -155,7 +154,83 @@ class AdminController extends Controller
         return response()->json($lugar);
     }
 
-    
+
+    /**
+     * Bloquear/Desbloquear un lugar (toggle del campo bloqueado)
+     */
+    public function toggleEstadoLugar($id, Request $request)
+    {
+        $usuario = Auth::user()->load('rol');
+
+        if (!$this->esAdministrador($usuario)) {
+            return response()->json(['mensaje' => 'No autorizado.'], 403);
+        }
+
+        $lugar = Lugar::with(['usuario', 'categoria'])->find($id);
+
+        if (!$lugar) {
+            return response()->json(['mensaje' => 'Lugar no encontrado.'], 404);
+        }
+
+        // Verificar que el lugar no esté eliminado
+        if (!$lugar->activo) {
+            return response()->json(['mensaje' => 'No se puede cambiar el estado de un lugar eliminado.'], 422);
+        }
+
+        DB::beginTransaction();
+
+        try {
+            // Si NO está bloqueado (false), lo bloqueamos (true); si está bloqueado (true), lo desbloqueamos (false)
+            if (!$lugar->bloqueado) {
+                // Bloquear lugar
+                $validator = Validator::make($request->all(), [
+                    'motivo' => 'nullable|string|max:500'
+                ]);
+
+                if ($validator->fails()) {
+                    return response()->json(['error' => $validator->errors()], 422);
+                }
+
+                $lugar->update([
+                    'bloqueado' => true,
+                    'fecha_bloqueo' => now(),
+                    'motivo_bloqueo' => $request->motivo ?? 'Bloqueado por administrador',
+                    'bloqueado_por' => $usuario->id_usuario,
+                    'fecha_desbloqueo' => null,
+                    'desbloqueado_por' => null
+                ]);
+
+                $mensaje = 'Lugar bloqueado correctamente.';
+                $nuevoEstado = 'Bloqueado';
+            } else {
+                // Desbloquear lugar
+                $lugar->update([
+                    'bloqueado' => false,
+                    'fecha_bloqueo' => null,
+                    'motivo_bloqueo' => null,
+                    'bloqueado_por' => null,
+                    'fecha_desbloqueo' => now(),
+                    'desbloqueado_por' => $usuario->id_usuario
+                ]);
+
+                $mensaje = 'Lugar desbloqueado correctamente.';
+                $nuevoEstado = 'Disponible';
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'mensaje' => $mensaje,
+                'lugar' => $lugar->fresh()->load(['usuario', 'categoria']),
+                'nuevo_estado' => $nuevoEstado,
+                'bloqueado' => $lugar->bloqueado
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => 'Error al cambiar estado del lugar: ' . $e->getMessage()], 500);
+        }
+    }
 
     /**
      * Obtener estadísticas de lugares
@@ -173,9 +248,9 @@ class AdminController extends Controller
                 'total_lugares' => Lugar::count(),
                 'lugares_activos' => Lugar::where('activo', true)->count(),
                 'lugares_inactivos' => Lugar::where('activo', false)->count(),
-                'lugares_por_categoria' => Lugar::select('CategoriaLugar.nombre as categoria', DB::raw('count(*) as total'))
-                    ->join('CategoriaLugar', 'Lugar.id_categoria', '=', 'CategoriaLugar.id_categoria')
-                    ->groupBy('CategoriaLugar.nombre', 'CategoriaLugar.id_categoria')
+                'lugares_por_categoria' => Lugar::select('Categoria.nombre as categoria', DB::raw('count(*) as total'))
+                    ->join('Categoria', 'Lugar.id_categoria', '=', 'Categoria.id_categoria')
+                    ->groupBy('Categoria.nombre', 'Categoria.id_categoria')
                     ->get(),
                 'lugares_con_telefono' => Lugar::whereNotNull('num_telefonico')
                     ->where('num_telefonico', '!=', '')
@@ -198,6 +273,7 @@ class AdminController extends Controller
         }
     }
 
+    
 
     /**
      * Obtener lugares por categoría

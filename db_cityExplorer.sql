@@ -151,7 +151,7 @@ ADD COLUMN desbloqueado_por INT NULL,
 ADD COLUMN last_login TIMESTAMP NULL,
 ADD COLUMN remember_token VARCHAR(100) NULL,
 ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 ADD COLUMN bloqueado BOOLEAN DEFAULT FALSE;
 
 -- Agregar las claves foráneas
@@ -167,3 +167,51 @@ FOREIGN KEY (desbloqueado_por) REFERENCES Usuario(id_usuario);
 ALTER TABLE Usuario
 ADD INDEX idx_usuarios_rol (id_rol),
 ADD INDEX idx_usuarios_activo (activo);
+
+
+
+-- Agregar columnas a la tabla Lugar
+ALTER TABLE Lugar
+ADD COLUMN IF NOT EXISTS fecha_bloqueo TIMESTAMP NULL,
+ADD COLUMN IF NOT EXISTS motivo_bloqueo TEXT NULL,
+ADD COLUMN IF NOT EXISTS bloqueado_por INT NULL,
+ADD COLUMN IF NOT EXISTS fecha_desbloqueo TIMESTAMP NULL,
+ADD COLUMN IF NOT EXISTS desbloqueado_por INT NULL,
+ADD COLUMN IF NOT EXISTS last_login TIMESTAMP NULL,
+ADD COLUMN IF NOT EXISTS remember_token VARCHAR(100) NULL,
+ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+ADD COLUMN IF NOT EXISTS bloqueado BOOLEAN DEFAULT FALSE;
+
+-- Agregar las claves foráneas en la tabla Lugar
+ALTER TABLE Lugar
+ADD CONSTRAINT fk_lugar_bloqueado_por 
+FOREIGN KEY (bloqueado_por) REFERENCES Usuario(id_usuario);
+
+ALTER TABLE Lugar
+ADD CONSTRAINT fk_lugar_desbloqueado_por 
+FOREIGN KEY (desbloqueado_por) REFERENCES Usuario(id_usuario);
+
+
+-- Agregar columnas a Lugar una por una
+ALTER TABLE Lugar ADD COLUMN fecha_bloqueo TIMESTAMP NULL;
+ALTER TABLE Lugar ADD COLUMN motivo_bloqueo TEXT NULL;
+ALTER TABLE Lugar ADD COLUMN bloqueado_por INT NULL;
+ALTER TABLE Lugar ADD COLUMN fecha_desbloqueo TIMESTAMP NULL;
+ALTER TABLE Lugar ADD COLUMN desbloqueado_por INT NULL;
+ALTER TABLE Lugar ADD COLUMN last_login TIMESTAMP NULL;
+ALTER TABLE Lugar ADD COLUMN remember_token VARCHAR(100) NULL;
+ALTER TABLE Lugar ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE Lugar ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+ALTER TABLE Lugar ADD COLUMN bloqueado BOOLEAN DEFAULT FALSE;
+
+
+-- Agregar claves foráneas
+ALTER TABLE Lugar
+ADD CONSTRAINT fk_lugar_bloqueado_por 
+FOREIGN KEY (bloqueado_por) REFERENCES Usuario(id_usuario);
+
+ALTER TABLE Lugar
+ADD CONSTRAINT fk_lugar_desbloqueado_por 
+FOREIGN KEY (desbloqueado_por) REFERENCES Usuario(id_usuario);
+
