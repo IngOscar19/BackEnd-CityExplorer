@@ -145,10 +145,9 @@ Route::middleware(['auth:sanctum'])->group(function() {
     });
 
     // 🔐 Rutas protegidas para estadísticas de visitas de usuario
-    Route::prefix('estadisticas-visitas')->group(function() {
-        Route::get('/usuario/{id}', [EstadisticasVisitasController::class, 'obtenerEstadisticasUsuario'])->whereNumber('id'); // Estadísticas de usuario específico
-        Route::get('/mis-estadisticas', [EstadisticasVisitasController::class, 'obtenerEstadisticasUsuario']); // Mis estadísticas (usuario autenticado)
-    });
+        Route::post('/estadisticas-visitas', [EstadisticasVisitasController::class, 'registrarVisita']);
+        Route::get('/estadisticas-visitas/lugar/{idLugar}', [EstadisticasVisitasController::class, 'obtenerEstadisticasPorLugar']);
+        Route::get('/estadisticas-visitas/anunciante/{idAnunciante}', [EstadisticasVisitasController::class, 'obtenerEstadisticasAnunciante']);
 
    // Rutas para RolController
    Route::prefix('rol')->group(function() {

@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Validator;
 class AdminController extends Controller
 {
     /**
-     * Listar todos los usuarios (solo administradores)
+     * Listar todos los usuarios (solo los administradores)
      */
     public function index(Request $request)
     {
