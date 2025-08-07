@@ -724,6 +724,86 @@ class AdminController extends Controller
         return response()->json($usuarioDetalle);
     }
 
+    /**
+     * Eliminar un lugar lógicamente (marcar activo = false)
+     */
+    public function eliminarLugar($id)
+    {
+        $usuario = Auth::user()->load('rol');
+
+        if (!$this->esAdministrador($usuario)) {
+            return response()->json(['mensaje' => 'No autorizado.'], 403);
+        }
+
+        $lugar = Lugar::find($id);
+
+        if (!$lugar) {
+            return response()->json(['mensaje' => 'Lugar no encontrado.'], 404);
+        }
+
+        if (!$lugar->activo) {
+            return response()->json(['mensaje' => 'El lugar ya está eliminado.'], 422);
+        }
+
+        DB::beginTransaction();
+
+        try {
+            // Eliminación lógica: marcar como inactivo
+            $lugar->update(['activo' => false]);
+
+            DB::commit();
+
+            return response()->json([
+                'mensaje' => 'Lugar eliminado correctamente.',
+                'lugar_id' => $id
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => 'Error al eliminar lugar: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Restaurar un lugar eliminado (marcar activo = true)
+     */
+    public function restaurarLugar($id)
+    {
+        $usuario = Auth::user()->load('rol');
+
+        if (!$this->esAdministrador($usuario)) {
+            return response()->json(['mensaje' => 'No autorizado.'], 403);
+        }
+
+        $lugar = Lugar::find($id);
+
+        if (!$lugar) {
+            return response()->json(['mensaje' => 'Lugar no encontrado.'], 404);
+        }
+
+        if ($lugar->activo) {
+            return response()->json(['mensaje' => 'El lugar no está eliminado.'], 422);
+        }
+
+        DB::beginTransaction();
+
+        try {
+            $lugar->update(['activo' => true]);
+
+            DB::commit();
+
+            return response()->json([
+                'mensaje' => 'Lugar restaurado correctamente.',
+                'lugar' => $lugar->fresh()->load(['usuario', 'categoria'])
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => 'Error al restaurar lugar: ' . $e->getMessage()], 500);
+        }
+    }
+
+
     
 
     /**
