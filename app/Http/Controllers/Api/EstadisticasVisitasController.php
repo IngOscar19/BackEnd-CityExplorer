@@ -17,9 +17,9 @@ class EstadisticasVisitasController extends Controller
     {
         try {
             $validated = $request->validate([
-                'id_lugar' => 'required|integer|exists:lugar,id_lugar',
+                'id_lugar' => 'required|integer|exists:Lugar,id_lugar',
                 'tiempo_visita' => 'required|integer|min:1',
-                'id_usuario' => 'nullable|integer|exists:usuario,id_usuario'
+                'id_usuario' => 'nullable|integer|exists:Usuario,id_usuario'
             ]);
 
             $fecha = Carbon::now();
