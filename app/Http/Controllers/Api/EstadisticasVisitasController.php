@@ -93,14 +93,25 @@ class EstadisticasVisitasController extends Controller
         }
     }
 
+    
+
     /**
-     * Obtener estadísticas globales por anunciante
+     * Obtener estadísticas globales por usuario anunciante
      */
-    public function obtenerEstadisticasAnunciante($idAnunciante)
+    public function obtenerEstadisticasAnunciante($idUsuario)
     {
         try {
-            // Validar si es un anunciante
-            $usuario = DB::table('usuario')->where('id_usuario', $idAnunciante)->first();
+            // Debug: Log del ID recibido
+            Log::info('Iniciando obtenerEstadisticasAnunciante', ['id_usuario' => $idUsuario]);
+            
+            // Validar si el usuario existe y obtener su rol
+            $usuario = DB::table('Usuario as u')
+                ->join('Rol as r', 'u.id_rol', '=', 'r.id_rol')
+                ->select('u.*', 'r.nombre as rol')
+                ->where('u.id_usuario', $idUsuario)
+                ->first();
+            
+            Log::info('Usuario encontrado', ['usuario' => $usuario]);
 
             if (!$usuario) {
                 return response()->json([
@@ -109,17 +120,19 @@ class EstadisticasVisitasController extends Controller
                 ], 404);
             }
 
-            if ($usuario->rol !== 'anunciante') {
+            if (strtolower($usuario->rol) !== 'anunciante') {
                 return response()->json([
                     'success' => false,
-                    'message' => 'El usuario con ID ' . $idAnunciante . ' tiene el rol "' . $usuario->rol . '" y no es anunciante'
+                    'message' => 'El usuario con ID ' . $idUsuario . ' tiene el rol "' . $usuario->rol . '" y no es anunciante'
                 ], 403);
             }
 
             // Obtener todos los lugares del anunciante
-            $lugares = DB::table('lugar')
-                ->where('id_usuario', $idAnunciante)
+            $lugares = DB::table('Lugar')
+                ->where('id_usuario', $idUsuario)
                 ->pluck('id_lugar');
+
+            Log::info('Lugares del anunciante', ['lugares' => $lugares->toArray()]);
 
             if ($lugares->isEmpty()) {
                 return response()->json([
@@ -128,6 +141,7 @@ class EstadisticasVisitasController extends Controller
                 ], 404);
             }
 
+            Log::info('Iniciando consulta de resumen');
             // Resumen general
             $resumen = DB::table('estadisticas_visitas')
                 ->select(
@@ -138,8 +152,10 @@ class EstadisticasVisitasController extends Controller
                 )
                 ->whereIn('id_lugar', $lugares)
                 ->first();
+                
+            Log::info('Resumen obtenido', ['resumen' => $resumen]);
 
-            // Por día
+            // Visitas por día (últimos 30 días)
             $visitasPorDia = DB::table('estadisticas_visitas')
                 ->select(
                     DB::raw('DATE(fecha) as fecha'),
@@ -152,9 +168,9 @@ class EstadisticasVisitasController extends Controller
                 ->limit(30)
                 ->get();
 
-            // Por lugar
+            // Visitas por lugar del anunciante
             $visitasPorLugar = DB::table('estadisticas_visitas as ev')
-                ->join('lugar as l', 'ev.id_lugar', '=', 'l.id_lugar')
+                ->join('Lugar as l', 'ev.id_lugar', '=', 'l.id_lugar')
                 ->select(
                     'l.id_lugar',
                     'l.nombre',
@@ -170,20 +186,26 @@ class EstadisticasVisitasController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => [
-                    'id_anunciante' => $idAnunciante,
+                    'id_usuario' => $idUsuario,
+                    'nombre_usuario' => $usuario->nombre ?? 'Usuario',
                     'resumen' => $resumen,
                     'visitas_por_dia' => $visitasPorDia,
-                    'visitas_por_lugar' => $visitasPorLugar
+                    'visitas_por_lugar' => $visitasPorLugar,
+                    'total_lugares' => count($lugares)
                 ]
             ]);
         } catch (\Exception $e) {
             Log::error('Error al obtener estadísticas del anunciante', [
                 'error' => $e->getMessage(),
-                'id_anunciante' => $idAnunciante
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+                'id_usuario' => $idUsuario
             ]);
             return response()->json([
                 'success' => false,
-                'message' => 'Error al obtener estadísticas del anunciante'
+                'message' => 'Error al obtener estadísticas del anunciante',
+                'error_detail' => $e->getMessage() // Temporal para debug
             ], 500);
         }
     }
