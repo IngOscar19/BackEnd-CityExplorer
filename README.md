@@ -209,3 +209,7 @@ Proyecto académico de backend con Laravel + Sanctum + Stripe + PipeDreamm
 ## 📄 Licencia
 
 Este proyecto está bajo la licencia MIT.
+
+## Se prohíbe estrictamente cualquier copia, modificación no autorizada de la Aplicación o de sus marcas, intentos de extraer el código fuente, traducir o crear versiones derivadas. El contenido y las marcas se proporcionan "TAL CUAL" para su información y uso personal, no comercial.
+
+---
