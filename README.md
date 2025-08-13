@@ -113,7 +113,9 @@ Asegúrate de publicar el vendor y configurar correctamente el middleware.
 
 ---
 ## Comando para poder subir archivos desde el almacenamiento local
+```bash
 php artisan storage:link
+```
 
 ## 💳 Pagos con Stripe
 
@@ -145,14 +147,15 @@ app/
 ├── Http/
 │   ├── Controllers/
 |   |              ├── Controllers/
+|   |                  ├── AdminController.php
 |   |                  ├── CategoriaLugarController.php
 |   |                  ├── ComentarioController.php
+|   |                  ├── EstadisticasVisitasController.php
 |   |                  ├── FavoritosController.php
 │   │                  ├── DireccionController.php
-│   │                  ├── ListaController.php
-|   |                  ├── ListaLugarController.php
 │   │                  ├── LugarController.php
 |   |                  ├── PagoController.php
+│   │                  ├── PasswordResetController.php
 |   |                  ├── RolController.php
 │   │                  └── UsuarioController.php
 │   └── Middleware/
@@ -161,18 +164,24 @@ app/
 │   ├── Comentario.php
 │   ├── Favoritos.php
 │   ├── Direccion.php
-│   ├── Lista.php
-│   ├── ListaLugar.php
+│   ├── Imagenes.php
 │   ├── Lugar.php
+│   ├── MetodoPago.php
 │   ├── Pago.php
+│   ├── PasswordReset.php
 │   ├── Rol.php
 │   └── Usuario.php
+├── Requests/
+│   ├── ForgotPasswordRequest.php
+│   ├── ResetPasswordRequest.php
+│  
 routes/
 ├── api.php
 ├── web.php
 database/
 ├── migrations/
 ├── seeders/
+├── Resources/db
 ```
 
 ---
