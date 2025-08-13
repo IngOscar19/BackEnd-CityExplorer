@@ -66,10 +66,10 @@ cd BackEnd-CityExplorer
     Abrir Docker
    En Terminal (cmd)
 ```bash
-cd Carpeta donde este el archivo city.yml
-docker-compose -f City.yml up -d (Para comando basico)
-Si se usa el archivo City.yml del proyecto clonado usar en la raiz del proyecto:
-docker-compose -f City.yml build --no-cache
+cd Carpeta donde este el archivo city.yml o si se usa el archivo del proyecto clonado usar desde la raiz del proyecto:
+docker-compose -f City.yml up -d 
+
+
 
 
 ```  
