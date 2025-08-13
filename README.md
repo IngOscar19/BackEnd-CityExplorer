@@ -66,10 +66,10 @@ cd BackEnd-CityExplorer
     Abrir Docker
    En Terminal (cmd)
 ```bash
-cd Carpeta donde este el archivo city.yml
-docker-compose up -d --build (Para comando basico)
-Si se deja el nombre de City al archivo .yml usar:
-docker-compose -f City.yml up -d --build
+cd Carpeta donde este el archivo city.yml o si se usa el archivo del proyecto clonado usar desde la raiz del proyecto:
+docker-compose -f City.yml up -d 
+
+
 
 
 ```  
@@ -86,6 +86,8 @@ Copear las tablas y los inserts
 composer require stripe/stripe-php
 
 composer require laravel/sanctum
+
+composer require intervention/image:^2.7
 ```
 
 4. Copia el archivo `.env` y configura tus variables:
@@ -124,6 +126,15 @@ STRIPE_SECRET=sk_test_XXXXXXXXXXXX
 ```
 
 Los pagos están relacionados con los lugares. Al registrar un lugar, se crea un registro de pago asociado.
+
+
+## Integración de Pipedream
+
+Para configurar la integración de Pipedream, puedes usar el siguiente endpoint:
+
+[Pipedream Webhook](https://api.pipedream.com)
+
+Esta se agrega en el archivo .env del proyecto
 
 ---
 
@@ -189,11 +200,16 @@ database/
 Equipo de City Explorer
 Oscar Martin Espinosa Romero
 Jose Manuel Garcia Morales
+Miguel Angel Diaz Rivera
 
-Proyecto académico de backend con Laravel + Sanctum + Stripe
+Proyecto académico de backend con Laravel + Sanctum + Stripe + PipeDreamm
 
 ---
 
 ## 📄 Licencia
 
 Este proyecto está bajo la licencia MIT.
+
+## Se prohíbe estrictamente cualquier copia, modificación no autorizada de la Aplicación o de sus marcas, intentos de extraer el código fuente, traducir o crear versiones derivadas. El contenido y las marcas se proporcionan "TAL CUAL" para su información y uso personal, no comercial.
+
+---
