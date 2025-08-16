@@ -29,7 +29,7 @@ Route::post('user/login', [UsuarioController::class, 'login'])->name('login');
 Route::post('user/register', [UsuarioController::class, 'create'])->name('register');
 
 // 🔓 Ruta pública para obtener todos los lugares sin autenticación
-Route::get('lugar', [LugarController::class, 'index']); // <-- ESTA ES LA NUEVA
+Route::get('lugar', [LugarController::class, 'index']); 
 
 // 🔓 Ruta pública para obtener un lugar específico sin autenticación
 Route::get('lugar/{id}', [LugarController::class, 'show'])->whereNumber('id');
@@ -144,11 +144,19 @@ Route::middleware(['auth:sanctum'])->group(function() {
         });
     });
 
-    // 🔐 Rutas protegidas para estadísticas de visitas de usuario
+    // Rutas existentes (mantenidas para compatibilidad)
         Route::post('/estadisticas-visitas', [EstadisticasVisitasController::class, 'registrarVisita']);
         Route::get('/estadisticas-visitas/lugar/{idLugar}', [EstadisticasVisitasController::class, 'obtenerEstadisticasPorLugar']);
         Route::get('/estadisticas/anunciante/{idUsuario}', [EstadisticasVisitasController::class, 'obtenerEstadisticasAnunciante']);
 
+    // Nuevos métodos separados para lugares específicos
+        Route::get('/lugar/{idLugar}/tiempo-promedio', [EstadisticasVisitasController::class, 'obtenerTiempoPromedioLugar']);
+        Route::get('/lugar/{idLugar}/cantidad-visitas', [EstadisticasVisitasController::class, 'obtenerCantidadVisitasLugar']);
+
+    // Nuevos métodos separados para anunciantes
+        Route::get('/anunciante/{idUsuario}/tiempo-promedio', [EstadisticasVisitasController::class, 'obtenerTiempoPromedioAnunciante']);
+        Route::get('/anunciante/{idUsuario}/cantidad-visitas', [EstadisticasVisitasController::class, 'obtenerCantidadVisitasAnunciante']);
+   
    // Rutas para RolController
    Route::prefix('rol')->group(function() {
        Route::get('', [RolController::class, 'index']);

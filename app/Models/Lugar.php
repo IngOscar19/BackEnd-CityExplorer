@@ -24,13 +24,13 @@ class Lugar extends Model
         'horario_cierre',
         'id_categoria',
         'id_direccion',
-        'activo',          // Para eliminación lógica (true = existe, false = eliminado)
-        'bloqueado',       // Para el toggle de estado (true = bloqueado, false = disponible)
-        'motivo_bloqueo',  // Razón del bloqueo
-        'fecha_bloqueo',   // Cuándo fue bloqueado
-        'bloqueado_por',   // ID del admin que bloqueó
-        'fecha_desbloqueo', // Cuándo fue desbloqueado
-        'desbloqueado_por', // ID del admin que desbloqueó
+        'activo',         
+        'bloqueado',       
+        'motivo_bloqueo',  
+        'fecha_bloqueo',  
+        'bloqueado_por',  
+        'fecha_desbloqueo',
+        'desbloqueado_por', 
         'id_usuario',
     ];
 
