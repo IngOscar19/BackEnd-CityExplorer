@@ -17,10 +17,6 @@ use App\Models\Imagenes;
 use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\AdminController;
 
-// Ruta de prueba
-Route::post('hola', function() {
-   return response()->json(['message' => 'Hello World!']);
-});
 
 // Ruta para el login (con nombre)
 Route::post('user/login', [UsuarioController::class, 'login'])->name('login');
@@ -64,7 +60,7 @@ Route::prefix('direccion')->group(function() {
 Route::prefix('estadisticas-visitas')->group(function() {
     Route::post('/', [EstadisticasVisitasController::class, 'registrarVisita']); // Registrar visita
     Route::get('/lugar/{id}', [EstadisticasVisitasController::class, 'obtenerEstadisticasLugar'])->whereNumber('id'); // Estadísticas de lugar
-    Route::get('/lugares-populares', [EstadisticasVisitasController::class, 'obtenerLugaresMasVisitados']); // Lugares más visitados
+    Route::get('/lugares-populares', [EstadisticasVisitasController::class, 'obtenerLugaresMasVisitados']); 
 });
 
 
@@ -149,11 +145,11 @@ Route::middleware(['auth:sanctum'])->group(function() {
         Route::get('/estadisticas-visitas/lugar/{idLugar}', [EstadisticasVisitasController::class, 'obtenerEstadisticasPorLugar']);
         Route::get('/estadisticas/anunciante/{idUsuario}', [EstadisticasVisitasController::class, 'obtenerEstadisticasAnunciante']);
 
-    // Nuevos métodos separados para lugares específicos
+    
         Route::get('/lugar/{idLugar}/tiempo-promedio', [EstadisticasVisitasController::class, 'obtenerTiempoPromedioLugar']);
         Route::get('/lugar/{idLugar}/cantidad-visitas', [EstadisticasVisitasController::class, 'obtenerCantidadVisitasLugar']);
 
-    // Nuevos métodos separados para anunciantes
+    
         Route::get('/anunciante/{idUsuario}/tiempo-promedio', [EstadisticasVisitasController::class, 'obtenerTiempoPromedioAnunciante']);
         Route::get('/anunciante/{idUsuario}/cantidad-visitas', [EstadisticasVisitasController::class, 'obtenerCantidadVisitasAnunciante']);
    
@@ -181,19 +177,13 @@ Route::middleware(['auth:sanctum'])->group(function() {
    // Rutas para CategoriaLugarController
    Route::prefix('categoria_lugar')->group(function() {
        Route::get('', [CategoriaLugarController::class, 'index']);
-       Route::post('', [CategoriaLugarController::class, 'create']);
-       Route::get('/{id}', [CategoriaLugarController::class, 'show'])->whereNumber('id');
-       Route::patch('/{id}', [CategoriaLugarController::class, 'update'])->whereNumber('id');
-       Route::delete('/{id}', [CategoriaLugarController::class, 'destroy'])->whereNumber('id');
    });
 
    // Rutas para LugarController (protegidas, excepto la nueva pública que ya movimos arriba)
    Route::prefix('lugar')->group(function() {
-       Route::post('', [LugarController::class, 'store']);
-       /* Route::get('/{id}', [LugarController::class, 'show'])->whereNumber('id'); */
+       Route::get('/listaLugares', [LugarController::class, 'indexAll']);
        Route::post('/{id}', [LugarController::class, 'update'])->whereNumber('id');
        Route::delete('/{id}', [LugarController::class, 'destroy'])->whereNumber('id');
-
        Route::post('/con-direccion', [LugarController::class, 'createWithDireccion'])
            ->name('lugar.crear_con_direccion');
    });
@@ -206,48 +196,27 @@ Route::middleware(['auth:sanctum'])->group(function() {
         Route::put('/{id}', [ComentarioController::class, 'update']);
         Route::delete('/{id}', [ComentarioController::class, 'destroy']);
     
-    // Rutas adicionales
+    
        
     });
 
     Route::prefix('favoritos')->group(function () {
         Route::get('/', [FavoritosController::class, 'index']);
-        Route::post('/', [FavoritosController::class, 'store']);
-        Route::delete('/{id_lugar}', [FavoritosController::class, 'destroy']);
-        
-        // Rutas adicionales
         Route::get('/check/{id_lugar}', [FavoritosController::class, 'check']);
         Route::post('/toggle', [FavoritosController::class, 'toggle']);
-        Route::get('/stats', [FavoritosController::class, 'stats']);
+       
     });
 
     // Rutas para PagoController
     Route::prefix('pago')->group(function() {
-        // Rutas administrativas (solo para anunciantes)
         Route::get('', [PagoController::class, 'index']); // Obtener todos los pagos
-        Route::get('/{id}', [PagoController::class, 'show'])->whereNumber('id'); // Obtener pago por ID
-        Route::delete('/{id}', [PagoController::class, 'destroy'])->whereNumber('id'); // Eliminar pago por ID
-        
         // Rutas de usuario
         Route::get('/mis-pagos', [PagoController::class, 'misPagos']); // Obtener pagos del usuario
-        
         // Rutas de Stripe - Setup y configuración
-        Route::post('/setup-intent', [PagoController::class, 'crearSetupIntent']); // Crear setup intent
-        Route::post('/guardar-metodo', [PagoController::class, 'guardarMetodoPago']); // Guardar método de pago
-        
-        // Rutas de gestión de tarjetas
-        Route::get('/tarjeta-guardada', [PagoController::class, 'obtenerTarjetaGuardada']); // Ver tarjeta guardada
-        Route::delete('/tarjeta-guardada', [PagoController::class, 'eliminarTarjetaGuardada']); // Eliminar tarjeta guardada
-        
-        // Rutas de procesamiento de pagos
+        Route::post('/setup-intent', [PagoController::class, 'crearSetupIntent']); 
         Route::post('/pagar', [PagoController::class, 'pagar']); // Pago manual (con CVV)
-        Route::post('/domiciliado', [PagoController::class, 'pagarDomiciliado']); // Pago domiciliado (sin CVV)
-        
-        // Rutas adicionales de utilidad
-        //Route::get('/historial/{id_lugar}', [PagoController::class, 'historialPagosLugar'])->whereNumber('id_lugar'); // Historial de pagos por lugar
         Route::post('/verificar-pago/{payment_intent_id}', [PagoController::class, 'verificarPago']); // Verificar estado de pago
-        //Route::get('/estadisticas', [PagoController::class, 'estadisticasPagos']); // Estadísticas de pagos del usuario
-        Route::post('/reembolsar/{id}', [PagoController::class, 'reembolsar'])->whereNumber('id'); // Reembolsar pago (solo anunciantes)
+        
     });
 
     

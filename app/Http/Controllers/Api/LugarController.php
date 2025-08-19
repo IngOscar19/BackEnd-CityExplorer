@@ -20,10 +20,27 @@ class LugarController extends Controller
     const LIMITE_IMAGENES = 8;
 
     // Listar todos los lugares
-    public function index()
+    public function indexAll()
     {
         return response()->json(Lugar::with('imagenes')->get());
     }
+
+    public function index()
+  {
+    // Usar el scope 'disponibles' que filtra activos y no bloqueados
+    $lugares = Lugar::disponibles()->with('imagenes')->get();
+    
+    // Transformar URLs de imágenes para incluir el path completo
+    $lugares->each(function($lugar) {
+        $lugar->imagenes->transform(function($imagen) {
+            $imagen->url = asset("storage/{$imagen->url}");
+            return $imagen;
+        });
+    });
+
+    return response()->json($lugares);
+  }
+
 
     // Mostrar un solo lugar con sus imágenes
     public function show($id)
