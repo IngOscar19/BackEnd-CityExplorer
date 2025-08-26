@@ -67,7 +67,7 @@ class UsuarioController extends Controller
         'correo' => 'required|email|unique:Usuario,correo', 
         'password' => 'required|string|min:6', 
         'id_rol' => 'nullable|exists:Rol,id_rol',
-        'foto_perfil' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+        'foto_perfil' => 'nullable|image|mimes:jpg,jpeg,png,webp,gif|max:2048',
     ]);
 
     if ($validator->fails()) {
