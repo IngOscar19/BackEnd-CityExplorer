@@ -259,7 +259,7 @@ class UsuarioController extends Controller
             if ($request->hasFile('foto_perfil')) {
                 // Validar imagen
                 $validator = Validator::make($request->all(), [
-                    'foto_perfil' => 'image|mimes:jpg,jpeg,png,webp|max:2048'
+                    'foto_perfil' => 'image|mimes:jpg,jpeg,png,webp,gif|max:2048'
                 ]);
 
                 if ($validator->fails()) {
