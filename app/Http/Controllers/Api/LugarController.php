@@ -33,7 +33,7 @@ class LugarController extends Controller
     // Transformar URLs de imágenes para incluir el path completo
     $lugares->each(function($lugar) {
         $lugar->imagenes->transform(function($imagen) {
-            $imagen->url = asset("storage/{$imagen->url}");
+            $imagen->url = $this->urlImagen($imagen->url);
             return $imagen;
         });
     });
@@ -53,7 +53,7 @@ class LugarController extends Controller
 
         // Transformar URLs de imágenes para incluir el path completo
         $lugar->imagenes->transform(function($imagen) {
-            $imagen->url = asset("storage/{$imagen->url}");
+            $imagen->url = $this->urlImagen($imagen->url);
             return $imagen;
         });
 
@@ -229,6 +229,19 @@ class LugarController extends Controller
  }
 
     // Métodos auxiliares protegidos
+
+    /**
+     * Genera la URL pública de una imagen.
+     * Solo antepone /storage/ a rutas relativas; las URLs absolutas
+     * (http/https) se devuelven tal cual.
+     */
+    protected function urlImagen(string $url): string
+    {
+        if (\Illuminate\Support\Str::startsWith($url, ['http://', 'https://'])) {
+            return $url;
+        }
+        return asset("storage/{$url}");
+    }
 
     /**
      * Valida el límite de imágenes durante la actualización

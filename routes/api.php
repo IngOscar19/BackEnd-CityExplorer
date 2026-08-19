@@ -72,11 +72,13 @@ Route::get('/lugar/{id}/imagenes', function ($id) {
         return response()->json(['mensaje' => 'No se encontraron imágenes para este lugar.'], 404);
     }
 
-    // Agrega la URL completa a cada imagen
+    // Agrega la URL completa a cada imagen (solo si es ruta relativa)
     $imagenesConUrl = $imagenes->map(function ($img) {
         return [
             'id_imagen' => $img->id_imagen,
-            'url' => asset('storage/' . $img->url), // genera la URL completa
+            'url' => \Illuminate\Support\Str::startsWith($img->url, ['http://', 'https://'])
+                ? $img->url
+                : asset('storage/' . $img->url),
         ];
     });
 
